@@ -24,50 +24,67 @@ const io = new Server(server, {
     },
 });
 
+type Player = {
+    id: string
+    name: string
+}
+
+type GameConfig = {
+    words: string[]
+    duration: number
+}
+
+type Room = {
+    roomId: string
+    players: Player[]
+    config: GameConfig
+}
+
+const rooms: Record<string, Room> = {}
+
 io.on("connection", (socket) => {
     console.log("Connected:", socket.id);
 
-    // socket.on("createRoom", () => {
-    //     const roomId = uuidv4().slice(0, 6);
-    //     const config = {
-    //         words: ["apple", "banana", "cherry", "monkey", "typewriter"],
-    //         duration: 60,
-    //     };
-    //     rooms[roomId] = { players: [], config };
-    //     socket.join(roomId);
-    //     socket.emit("roomCreated", roomId, config);
-    // });
-    //
-    // socket.on("joinRoom", ({ roomId, name }) => {
-    //     const room = rooms[roomId];
-    //     if (!room) return;
-    //     if (room.players.length >= 4) return; // max 4 players
-    //
-    //     const player = { id: socket.id, name, progress: 0 };
-    //     room.players.push(player);
-    //
-    //     socket.join(roomId);
-    //     io.to(roomId).emit("roomJoined", roomId, room.players, room.config);
-    // });
-    //
-    // socket.on("updateProgress", (progress) => {
-    //     for (const roomId in rooms) {
-    //         const room = rooms[roomId];
-    //         const player = room.players.find((p) => p.id === socket.id);
-    //         if (player) {
-    //             player.progress = progress;
-    //             io.to(roomId).emit("playerUpdate", room.players);
-    //         }
-    //     }
-    // });
-    //
-    // socket.on("disconnect", () => {
-    //     for (const roomId in rooms) {
-    //         const room = rooms[roomId];
-    //         room.players = room.players.filter((p) => p.id !== socket.id);
-    //         io.to(roomId).emit("playerUpdate", room.players);
-    //     }
-    // });
+    socket.on("createRoom", ({ name }) => {
+        const roomId = uuidv4().slice(0, 6);
+        const config = {
+            words: ["apple", "banana", "cherry", "monkey", "typewriter"],
+            duration: 60,
+        };
+        rooms[roomId] = {
+            roomId: roomId,
+            players: [{ id: socket.id, name }],
+            config,
+        };
+        socket.join(roomId);
+        io.to(roomId).emit("roomCreated", rooms[roomId]);
+    });
+
+    socket.on("joinRoom", ({ roomId, name }) => {
+        const room = rooms[roomId];
+        if (!room) {
+            return
+        }
+        if (room.players.length >= 4) {
+            io.to(socket.id).emit("roomFull")
+            return
+        }
+
+        const player = { id: socket.id, name };
+        room.players.push(player);
+
+        socket.join(roomId);
+        io.to(roomId).emit("roomJoined", room);
+    });
+
+    socket.on("disconnect", () => {
+        for (const roomId in rooms) {
+            const room = rooms[roomId];
+            if (!room) return
+            room.players = room.players.filter((p) => p.id !== socket.id);
+            io.to(roomId).emit("playerUpdate", room.players);
+        }
+    });
 });
 
 export default app;

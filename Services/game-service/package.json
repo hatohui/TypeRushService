@@ -16,6 +16,7 @@
     "drizzle:migrate": "npx tsx src/db/migrate-standalone.ts"
   },
   "dependencies": {
+    "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "drizzle-orm": "^0.29.4",
     "express": "^4.18.2",

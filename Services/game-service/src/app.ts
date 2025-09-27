@@ -63,10 +63,11 @@ io.on("connection", (socket) => {
     socket.on("joinRoom", ({ roomId, name }) => {
         const room = rooms[roomId];
         if (!room) {
+            io.to(socket.id).emit("errorEvent", { type: "ROOM_NOT_EXIST", message: "Room not exist" })
             return
         }
         if (room.players.length >= 4) {
-            io.to(socket.id).emit("roomFull")
+            io.to(socket.id).emit("errorEvent", { type: "ROOM_FULL", message: "Room is full" })
             return
         }
 

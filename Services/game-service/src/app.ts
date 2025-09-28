@@ -78,6 +78,16 @@ io.on("connection", (socket) => {
         io.to(roomId).emit("roomJoined", room);
     });
 
+    socket.on("updateSharedTextbox", ({ input, roomId }) => {
+        const room = rooms[roomId];
+
+        if (!room) {
+            return
+        }
+
+        io.to(roomId).emit("updateTextbox", input);
+    })
+
     socket.on("disconnect", () => {
         for (const roomId in rooms) {
             const room = rooms[roomId];

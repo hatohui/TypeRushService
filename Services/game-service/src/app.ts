@@ -88,6 +88,16 @@ io.on("connection", (socket) => {
         io.to(roomId).emit("updateTextbox", input);
     })
 
+    socket.on("caretUpdate", ({caretIdx, wordIdx, roomId}) => {
+        const room = rooms[roomId];
+
+        if (!room) {
+            return
+        }
+
+        io.to(roomId).emit("updateCaretFromServer", {caretIdx, wordIdx, playerId: socket.id});
+    })
+
     socket.on("disconnect", () => {
         for (const roomId in rooms) {
             const room = rooms[roomId];

@@ -1,13 +1,13 @@
 name: typerush-recordservice
 
 services:
-  recordservice:
-    image: hatohui/recordservice:latest
-    build: .
-    container_name: recordservice
-    ports:
-      - '9001:9000'
-    restart: always
+  # recordservice:
+  #   image: hatohui/recordservice:latest
+  #   build: .
+  #   container_name: recordservice
+  #   ports:
+  #     - '9001:9000'
+  #   restart: always
 
   recordservice-db:
     image: postgres:17
@@ -17,8 +17,13 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: recorddb
     ports:
-      - '5433:5432'
+      - "5433:5432"
     volumes:
       - record_db_data:/var/lib/postgresql/data
-      - db:/docker-entrypoint-initdb.d
     restart: always
+
+volumes:
+  record_db_data:
+    name: record_db_data
+  db:
+    name: recordservice_db_init

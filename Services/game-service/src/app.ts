@@ -1,8 +1,8 @@
 import express from "express";
 import router from "./router/router.js";
-import { createServer } from "node:http"
+import {createServer} from "node:http"
 import {Server} from "socket.io";
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 import cors from "cors";
 
 const app = express();
@@ -24,9 +24,17 @@ const io = new Server(server, {
     },
 });
 
-type Player = {
+interface Caret {
+    caretIdx: number
+    wordIdx: number
+}
+
+interface Player {
     id: string
-    name: string
+    playerName: string
+    progress: {
+        caret: Caret
+    }
 }
 
 type GameConfig = {
@@ -45,7 +53,7 @@ const rooms: Record<string, Room> = {}
 io.on("connection", (socket) => {
     console.log("Connected:", socket.id);
 
-    socket.on("createRoom", ({ name }) => {
+    socket.on("createRoom", ({playerName}) => {
         const roomId = uuidv4().slice(0, 6);
         const config = {
             words: ["apple", "banana", "cherry", "monkey", "typewriter"],
@@ -53,32 +61,32 @@ io.on("connection", (socket) => {
         };
         rooms[roomId] = {
             roomId: roomId,
-            players: [{ id: socket.id, name }],
+            players: [{id: socket.id, playerName, progress: {caret: {caretIdx: -1, wordIdx: 0}}}],
             config,
         };
         socket.join(roomId);
         io.to(roomId).emit("roomCreated", rooms[roomId]);
     });
 
-    socket.on("joinRoom", ({ roomId, name }) => {
+    socket.on("joinRoom", ({roomId, playerName}) => {
         const room = rooms[roomId];
         if (!room) {
-            io.to(socket.id).emit("errorEvent", { type: "ROOM_NOT_EXIST", message: "Room not exist" })
+            io.to(socket.id).emit("errorEvent", {type: "ROOM_NOT_EXIST", message: "Room not exist"})
             return
         }
         if (room.players.length >= 4) {
-            io.to(socket.id).emit("errorEvent", { type: "ROOM_FULL", message: "Room is full" })
+            io.to(socket.id).emit("errorEvent", {type: "ROOM_FULL", message: "Room is full"})
             return
         }
 
-        const player = { id: socket.id, name };
+        const player = {id: socket.id, playerName, progress: {caret: {caretIdx: -1, wordIdx: 0}}};
         room.players.push(player);
 
         socket.join(roomId);
         io.to(roomId).emit("roomJoined", room);
     });
 
-    socket.on("updateSharedTextbox", ({ input, roomId }) => {
+    socket.on("updateSharedTextbox", ({input, roomId}) => {
         const room = rooms[roomId];
 
         if (!room) {
@@ -90,12 +98,17 @@ io.on("connection", (socket) => {
 
     socket.on("caretUpdate", ({caretIdx, wordIdx, roomId}) => {
         const room = rooms[roomId];
+        if (!room) return;
 
-        if (!room) {
-            return
+        const player = room.players.find(p => p.id === socket.id);
+        if (player) {
+            player.progress.caret = { caretIdx, wordIdx };
         }
 
-        io.to(roomId).emit("updateCaretFromServer", {caretIdx, wordIdx, playerId: socket.id});
+        io.to(roomId).emit("updateCaretFromServer", {
+            playerId: socket.id,
+            caret: { caretIdx, wordIdx }
+        });
     })
 
     socket.on("disconnect", () => {

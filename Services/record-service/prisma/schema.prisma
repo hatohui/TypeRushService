@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../generated/prisma"
@@ -35,9 +29,9 @@ model PersonalRecord {
 
 model MatchHistory {
   id           Int                @id @default(autoincrement())
-  modeId       Int?               @map("mode_id")
+  modeId       Int                @map("mode_id")
   createdAt    DateTime           @map("created_at") @default(now())
-  mode         Mode?              @relation("ModeToMatchHistories", fields: [modeId], references: [id])
+  mode         Mode               @relation("ModeToMatchHistories", fields: [modeId], references: [id])
   participants MatchParticipant[] @relation("MatchHistoryToParticipants")
 
   @@map("match_histories")

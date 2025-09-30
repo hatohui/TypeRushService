@@ -36,3 +36,6 @@ services:
 volumes:
   auth-db-data:
   auth-redis-data:
+networks:
+  auth-network:
+    driver: bridge

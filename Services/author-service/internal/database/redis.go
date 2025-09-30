@@ -10,10 +10,8 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// RedisClient holds the Redis client instance
 var RedisClient *redis.Client
 
-// ConnectRedis establishes a connection to Redis using connection options
 func ConnectRedis(opts *redis.Options) (*redis.Client, error) {
 	client := redis.NewClient(opts)
 	
@@ -29,15 +27,14 @@ func ConnectRedis(opts *redis.Options) (*redis.Client, error) {
 	return client, nil
 }
 
-// ConnectRedisWithEnv connects to Redis using environment variables
 func ConnectRedisWithEnv() (*redis.Client, error) {
 	host := config.GetEnvOr("REDIS_HOST", "localhost")
 	port := config.GetEnvOr("REDIS_PORT", "6379")
 	password := config.GetEnvOr("REDIS_PASSWORD", "")
 	dbStr := config.GetEnvOr("REDIS_DB", "0")
 	
-	// Convert DB string to int
 	db, err := strconv.Atoi(dbStr)
+
 	if err != nil {
 		return nil, fmt.Errorf("invalid REDIS_DB value: %s", dbStr)
 	}
@@ -96,56 +93,4 @@ func Exists(ctx context.Context, key string) (bool, error) {
 	}
 	result, err := RedisClient.Exists(ctx, key).Result()
 	return result > 0, err
-}
-
-func SetJSON(ctx context.Context, key string, value interface{}, expiration time.Duration) error {
-	if RedisClient == nil {
-		return fmt.Errorf("redis client not initialized")
-	}
-	return RedisClient.Set(ctx, key, value, expiration).Err()
-}
-
-func GetJSON(ctx context.Context, key string) (string, error) {
-	if RedisClient == nil {
-		return "", fmt.Errorf("redis client not initialized")
-	}
-	return RedisClient.Get(ctx, key).Result()
-}
-
-
-func SetUserSession(ctx context.Context, sessionID string, userID string, expiration time.Duration) error {
-	return SetWithExpiration(ctx, fmt.Sprintf("session:%s", sessionID), userID, expiration)
-}
-
-func GetUserSession(ctx context.Context, sessionID string) (string, error) {
-	return Get(ctx, fmt.Sprintf("session:%s", sessionID))
-}
-
-func DeleteUserSession(ctx context.Context, sessionID string) error {
-	return Delete(ctx, fmt.Sprintf("session:%s", sessionID))
-}
-
-func SetGameRoom(ctx context.Context, roomID string, roomData interface{}, expiration time.Duration) error {
-	return SetWithExpiration(ctx, fmt.Sprintf("room:%s", roomID), roomData, expiration)
-}
-
-func GetGameRoom(ctx context.Context, roomID string) (string, error) {
-	return Get(ctx, fmt.Sprintf("room:%s", roomID))
-}
-
-func IncrementRateLimit(ctx context.Context, key string, expiration time.Duration) (int64, error) {
-	if RedisClient == nil {
-		return 0, fmt.Errorf("redis client not initialized")
-	}
-	
-	pipe := RedisClient.Pipeline()
-	incr := pipe.Incr(ctx, key)
-	pipe.Expire(ctx, key, expiration)
-	_, err := pipe.Exec(ctx)
-	
-	if err != nil {
-		return 0, err
-	}
-	
-	return incr.Val(), nil
 }

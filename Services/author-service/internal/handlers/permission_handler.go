@@ -10,19 +10,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// PermissionHandler handles permission-related HTTP requests
 type PermissionHandler struct {
 	permissionService services.PermissionServiceInterface
 }
 
-// NewPermissionHandler creates a new permission handler
 func NewPermissionHandler(permissionService services.PermissionServiceInterface) *PermissionHandler {
 	return &PermissionHandler{
 		permissionService: permissionService,
 	}
 }
 
-// CreatePermission handles POST /permissions
 func (h *PermissionHandler) CreatePermission(c *gin.Context) {
 	var req struct {
 		Name string `json:"name" binding:"required"`
@@ -42,7 +39,6 @@ func (h *PermissionHandler) CreatePermission(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"permission": permission})
 }
 
-// GetPermission handles GET /permissions/:id
 func (h *PermissionHandler) GetPermission(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)

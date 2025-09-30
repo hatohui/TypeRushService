@@ -9,13 +9,22 @@ import (
 )
 
 func AutoMigrate(db *gorm.DB) error {
+	// Migrate in order to avoid foreign key constraints issues
+	// First create tables without foreign keys
 	err := db.AutoMigrate(
 		&models.Role{},
 		&models.Permission{},
+	)
+	if err != nil {
+		return fmt.Errorf("failed to auto-migrate base tables: %w", err)
+	}
+
+	// Then create tables with foreign keys
+	err = db.AutoMigrate(
 		&models.UserBan{},
 	)
 	if err != nil {
-		return fmt.Errorf("failed to auto-migrate: %w", err)
+		return fmt.Errorf("failed to auto-migrate dependent tables: %w", err)
 	}
 
 	fmt.Println("Database migration completed successfully")

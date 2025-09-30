@@ -8,12 +8,12 @@ import (
 )
 
 type UserBanServiceInterface interface {
-	BanUser(userID string, permissionID int, reason string) (*models.UserBan, error)
-	UnbanUser(userID string, permissionID int) error
+	BanUser(userID string, permissionID uint, reason string) (*models.UserBan, error)
+	UnbanUser(userID string, permissionID uint) error
 	GetUserBan(id uint) (*models.UserBan, error)
 	GetUserBans(userID string) ([]models.UserBan, error)
 	GetAllUserBans() ([]models.UserBan, error)
-	IsUserBanned(userID string, permissionID int) (bool, error)
+	IsUserBanned(userID string, permissionID uint) (bool, error)
 	GetActiveUserBans(userID string) ([]models.UserBan, error)
 	GetRecentBans(days int, limit int) ([]models.UserBan, error)
 	UpdateBanReason(id uint, reason string) error
@@ -31,12 +31,12 @@ func NewUserBanService(userBanRepo repositories.UserBanRepositoryInterface, perm
 	}
 }
 
-func (s *UserBanService) BanUser(userID string, permissionID int, reason string) (*models.UserBan, error) {
+func (s *UserBanService) BanUser(userID string, permissionID uint, reason string) (*models.UserBan, error) {
 	if userID == "" {
 		return nil, fmt.Errorf("user ID cannot be empty")
 	}
 
-	if permissionID <= 0 {
+	if permissionID == 0 {
 		return nil, fmt.Errorf("invalid permission ID")
 	}
 
@@ -44,7 +44,7 @@ func (s *UserBanService) BanUser(userID string, permissionID int, reason string)
 		return nil, fmt.Errorf("ban reason cannot be empty")
 	}
 
-	_, err := s.permissionRepo.GetByID(uint(permissionID))
+	_, err := s.permissionRepo.GetByID(permissionID)
 	if err != nil {
 		return nil, fmt.Errorf("permission not found: %w", err)
 	}
@@ -69,12 +69,12 @@ func (s *UserBanService) BanUser(userID string, permissionID int, reason string)
 	return userBan, nil
 }
 
-func (s *UserBanService) UnbanUser(userID string, permissionID int) error {
+func (s *UserBanService) UnbanUser(userID string, permissionID uint) error {
 	if userID == "" {
 		return fmt.Errorf("user ID cannot be empty")
 	}
 
-	if permissionID <= 0 {
+	if permissionID == 0 {
 		return fmt.Errorf("invalid permission ID")
 	}
 
@@ -111,12 +111,12 @@ func (s *UserBanService) GetAllUserBans() ([]models.UserBan, error) {
 	return s.userBanRepo.GetAll()
 }
 
-func (s *UserBanService) IsUserBanned(userID string, permissionID int) (bool, error) {
+func (s *UserBanService) IsUserBanned(userID string, permissionID uint) (bool, error) {
 	if userID == "" {
 		return false, fmt.Errorf("user ID cannot be empty")
 	}
 
-	if permissionID <= 0 {
+	if permissionID == 0 {
 		return false, fmt.Errorf("invalid permission ID")
 	}
 

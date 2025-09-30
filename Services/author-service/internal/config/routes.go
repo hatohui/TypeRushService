@@ -6,7 +6,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// SetupRoleRoutes configures all role-related routes
 func SetupRoleRoutes(rg *gin.RouterGroup, h *handlers.RoleHandler) {
 	roles := rg.Group("/roles")
 	{
@@ -21,7 +20,6 @@ func SetupRoleRoutes(rg *gin.RouterGroup, h *handlers.RoleHandler) {
 	}
 }
 
-// SetupPermissionRoutes configures all permission-related routes
 func SetupPermissionRoutes(rg *gin.RouterGroup, h *handlers.PermissionHandler) {
 	permissions := rg.Group("/permissions")
 	{
@@ -34,7 +32,6 @@ func SetupPermissionRoutes(rg *gin.RouterGroup, h *handlers.PermissionHandler) {
 	}
 }
 
-// SetupUserBanRoutes configures all user ban-related routes
 func SetupUserBanRoutes(rg *gin.RouterGroup, h *handlers.UserBanHandler) {
 	users := rg.Group("/users")
 	{
@@ -52,19 +49,15 @@ func SetupUserBanRoutes(rg *gin.RouterGroup, h *handlers.UserBanHandler) {
 	}
 }
 
-// SetupHealthRoutes configures health check routes
 func SetupHealthRoutes(router *gin.Engine) {
 	router.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{"message": "pong", "status": "healthy"})
 	})
 }
 
-// SetupAPIRoutes configures all API routes
 func SetupAPIRoutes(router *gin.Engine, h *handlers.Handlers) {
-	// Health check routes (at root level)
 	SetupHealthRoutes(router)
 
-	// API v1 routes
 	api := router.Group("/api/v1")
 	{
 		SetupRoleRoutes(api, h.Role)

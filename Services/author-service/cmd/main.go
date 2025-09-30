@@ -38,10 +38,6 @@ func main() {
 
 	router := gin.Default()
 
-	router.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{"message": "pong", "status": "healthy"})
-	})
-
 	router.GET("/health/db", func(c *gin.Context) {
 		sqlDB, err := db.DB()
 		if err != nil {

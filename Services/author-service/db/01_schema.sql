@@ -14,6 +14,12 @@ CREATE TABLE "role_permission" (
   PRIMARY KEY ("perm_id", "role_id")
 );
 
-ALTER TABLE "role_permission" ADD FOREIGN KEY ("role_id") REFERENCES "roles" ("role_id");
+CREATE TABLE "user_ban" (
+  "user_id" string PRIMARY KEY,
+  "perm_id" int,
+  "reason" string
+);
 
+ALTER TABLE "role_permission" ADD FOREIGN KEY ("role_id") REFERENCES "roles" ("role_id");
 ALTER TABLE "role_permission" ADD FOREIGN KEY ("perm_id") REFERENCES "permissions" ("perm_id");
+ALTER TABLE "user_ban" ADD FOREIGN KEY ("perm_id") REFERENCES "permissions" ("perm_id");

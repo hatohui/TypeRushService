@@ -1,0 +1,49 @@
+name: Author Service CI
+
+on:
+  pull_request:
+    branches:
+      - "**"
+    paths:
+      - "Services/author-service/**"
+  push:
+    branches:
+      - main
+    paths:
+      - "Services/author-service/**"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./Services/author-service
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.1"
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Verify dependencies
+        run: go mod verify
+
+      - name: Build application
+        run: go build -v ./...
+
+      - name: Format check
+        run: |
+          if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then
+            echo "The following files are not formatted:"
+            gofmt -s -l .
+            exit 1
+          fi
+
+      - name: Vet code
+        run: go vet ./...

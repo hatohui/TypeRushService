@@ -1,0 +1,40 @@
+name: Text Service CI
+
+on:
+  pull_request:
+    branches:
+      - "**"
+    paths:
+      - "Services/text-service/**"
+  push:
+    branches:
+      - main
+    paths:
+      - "Services/text-service/**"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./Services/text-service
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Check syntax
+        run: python -m py_compile main.py controllers/todo_controller.py models/Todo.py
+
+      - name: Check if application starts
+        run: timeout 10s python main.py || test $? = 124

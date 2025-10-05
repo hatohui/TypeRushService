@@ -4,6 +4,7 @@ import {createServer} from "node:http"
 import {Server} from "socket.io";
 import {v4 as uuidv4} from 'uuid';
 import cors from "cors";
+import { Caret, Player, Room, GameConfig } from './common/types.js'
 
 const app = express();
 
@@ -23,30 +24,6 @@ const io = new Server(server, {
         methods: ["GET", "POST"],
     },
 });
-
-interface Caret {
-    caretIdx: number
-    wordIdx: number
-}
-
-interface Player {
-    id: string
-    playerName: string
-    progress: {
-        caret: Caret
-    }
-}
-
-type GameConfig = {
-    words: string[]
-    duration: number
-}
-
-type Room = {
-    roomId: string
-    players: Player[]
-    config: GameConfig
-}
 
 const rooms: Record<string, Room> = {}
 

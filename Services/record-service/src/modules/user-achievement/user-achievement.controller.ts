@@ -2,53 +2,43 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
   Delete,
   Body,
   Param,
-  Query,
   HttpCode,
   HttpStatus,
-  ParseIntPipe,
   ValidationPipe,
 } from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiBody,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { UserAchievementService } from './user-achievement.service';
-import { CreateUserAchievementDto } from './dtos/create-user-achievement.dto';
 import {
   UserAchievementResponseDto,
   UserAchievementListResponseDto,
 } from './dtos/user-achievement-response.dto';
-import { IsOptional, IsNumber, IsString, Min } from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsInt, IsNotEmpty } from 'class-validator';
 
 /**
- * Query DTO for listing user achievements
+ * Inline DTO for POST/PATCH/DELETE body containing achievementId
  */
-class ListUserAchievementsQueryDto {
-  @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  @Min(1)
-  page?: number;
-
-  @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  @Min(1)
-  limit?: number;
-
-  @IsOptional()
-  @IsString()
-  accountId?: string;
-
-  @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  achievementId?: number;
+class AchievementIdBodyDto {
+  @IsInt()
+  @IsNotEmpty()
+  achievementId: number;
 }
 
 /**
  * Controller for UserAchievement endpoints
  */
+@ApiTags('User Achievements')
+@ApiBearerAuth('JWT-auth')
 @Controller('user-achievements')
 export class UserAchievementController {
   constructor(
@@ -56,54 +46,122 @@ export class UserAchievementController {
   ) {}
 
   /**
-   * Create a new user achievement
-   * POST /user-achievements
+   * Get all achievements for a specific account
+   * GET /user-achievements/:accountId
    */
-  @Post()
-  @HttpCode(HttpStatus.CREATED)
-  async create(
-    @Body(new ValidationPipe({ transform: true, whitelist: true }))
-    createDto: CreateUserAchievementDto,
-  ): Promise<UserAchievementResponseDto> {
-    return this.userAchievementService.create(createDto);
-  }
-
-  /**
-   * Get all user achievements with pagination and filters
-   * GET /user-achievements
-   */
-  @Get()
+  @Get(':accountId')
   @HttpCode(HttpStatus.OK)
-  async findAll(
-    @Query(new ValidationPipe({ transform: true, whitelist: true }))
-    query: ListUserAchievementsQueryDto,
-  ): Promise<UserAchievementListResponseDto> {
-    return this.userAchievementService.findAll(query);
-  }
-
-  /**
-   * Get a user achievement by composite key
-   * GET /user-achievements/:accountId/:achievementId
-   */
-  @Get(':accountId/:achievementId')
-  @HttpCode(HttpStatus.OK)
-  async findById(
+  @ApiOperation({ summary: 'Get all achievements of an account' })
+  @ApiParam({ name: 'accountId', type: 'string', description: 'Account ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of user achievements',
+    type: UserAchievementListResponseDto,
+  })
+  @ApiResponse({ status: 404, description: 'Account not found' })
+  async findByAccount(
     @Param('accountId') accountId: string,
-    @Param('achievementId', ParseIntPipe) achievementId: number,
-  ): Promise<UserAchievementResponseDto> {
-    return this.userAchievementService.findById(accountId, achievementId);
+  ): Promise<UserAchievementListResponseDto> {
+    return this.userAchievementService.findAll({ accountId });
   }
 
   /**
-   * Delete a user achievement by composite key
-   * DELETE /user-achievements/:accountId/:achievementId
+   * Unlock an achievement for an account
+   * POST /user-achievements/:accountId
    */
-  @Delete(':accountId/:achievementId')
+  @Post(':accountId')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Unlock an achievement for an account' })
+  @ApiParam({ name: 'accountId', type: 'string', description: 'Account ID' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        achievementId: { type: 'number', example: 1 },
+      },
+      required: ['achievementId'],
+    },
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Achievement unlocked successfully',
+    type: UserAchievementResponseDto,
+  })
+  @ApiResponse({ status: 400, description: 'Invalid input' })
+  @ApiResponse({ status: 404, description: 'Achievement not found' })
+  @ApiResponse({ status: 409, description: 'Achievement already unlocked' })
+  async create(
+    @Param('accountId') accountId: string,
+    @Body(new ValidationPipe({ transform: true, whitelist: true }))
+    body: AchievementIdBodyDto,
+  ): Promise<UserAchievementResponseDto> {
+    return this.userAchievementService.create({
+      accountId,
+      achievementId: body.achievementId,
+    });
+  }
+
+  /**
+   * Update/verify an achievement for an account
+   * PATCH /user-achievements/:accountId
+   */
+  @Patch(':accountId')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Update an achievement for an account' })
+  @ApiParam({ name: 'accountId', type: 'string', description: 'Account ID' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        achievementId: { type: 'number', example: 1 },
+      },
+      required: ['achievementId'],
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Achievement updated successfully',
+    type: UserAchievementResponseDto,
+  })
+  @ApiResponse({ status: 400, description: 'Invalid input' })
+  @ApiResponse({ status: 404, description: 'Achievement not found' })
+  async update(
+    @Param('accountId') accountId: string,
+    @Body(new ValidationPipe({ transform: true, whitelist: true }))
+    body: AchievementIdBodyDto,
+  ): Promise<UserAchievementResponseDto> {
+    return this.userAchievementService.findById(accountId, body.achievementId);
+  }
+
+  /**
+   * Remove an achievement from an account
+   * DELETE /user-achievements/:accountId
+   */
+  @Delete(':accountId')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Remove an achievement from an account' })
+  @ApiParam({ name: 'accountId', type: 'string', description: 'Account ID' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        achievementId: { type: 'number', example: 1 },
+      },
+      required: ['achievementId'],
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Achievement removed successfully',
+    type: UserAchievementResponseDto,
+  })
+  @ApiResponse({ status: 400, description: 'Invalid input' })
+  @ApiResponse({ status: 404, description: 'Achievement not found' })
   async delete(
     @Param('accountId') accountId: string,
-    @Param('achievementId', ParseIntPipe) achievementId: number,
+    @Body(new ValidationPipe({ transform: true, whitelist: true }))
+    body: AchievementIdBodyDto,
   ): Promise<UserAchievementResponseDto> {
-    return this.userAchievementService.delete(accountId, achievementId);
+    return this.userAchievementService.delete(accountId, body.achievementId);
   }
 }

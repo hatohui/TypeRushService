@@ -6,19 +6,23 @@
   "scripts": {
     "clean": "rm -rf dist coverage",
     "test": "jest --coverage",
-    "build": "npx tsc && npm run drizzle:generate && npm run test",
+    "build": "npx tsc && npm run drizzle:generate",
     "start": "node dist/db/migrate-standalone.js && node dist/index.js",
     "dev": "npm run docker:up && npm run drizzle:generate && npm run drizzle:migrate && nodemon",
+    "dev1": "nodemon src/app.ts",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
     "drizzle:generate": "drizzle-kit generate:pg",
     "drizzle:migrate": "npx tsx src/db/migrate-standalone.ts"
   },
   "dependencies": {
+    "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "drizzle-orm": "^0.29.4",
     "express": "^4.18.2",
-    "postgres": "^3.4.3"
+    "postgres": "^3.4.3",
+    "socket.io": "^4.8.1",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@testcontainers/postgresql": "^10.7.1",

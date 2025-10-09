@@ -1,13 +1,13 @@
 name: authorization-service
 
 services:
-  authorization-service:
-    image: hatohui/authorization-service:latest
-    build: .
-    container_name: authorization-service
-    ports:
-      - "7000:7000"
-    restart: always
+  # authorization-service:
+  #   image: hatohui/authorization-service:latest
+  #   build: .
+  #   container_name: authorization-service
+  #   ports:
+  #     - "7000:7000"
+  #   restart: always
 
   authorization-db:
     image: postgres:17
@@ -18,7 +18,24 @@ services:
       POSTGRES_DB: authorizationdb
     ports:
       - "5432:5432"
-    volumes:
-      - auth_db_data:/var/lib/postgresql/data
-      - db:/docker-entrypoint-initdb.d
     restart: always
+    volumes:
+      - auth-db-data:/var/lib/postgresql/data
+    networks:
+      - auth-network
+  authorization-cache:
+    image: redis:7-alpine
+    container_name: authorization-cache
+    ports:
+      - "6379:6379"
+    restart: always
+    volumes:
+      - auth-redis-data:/data
+    networks:
+      - auth-network
+volumes:
+  auth-db-data:
+  auth-redis-data:
+networks:
+  auth-network:
+    driver: bridge

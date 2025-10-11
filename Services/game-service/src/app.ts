@@ -34,11 +34,11 @@ io.on("connection", (socket) => {
         const roomId = uuidv4().slice(0, 6);
         const config = {
             words: ["apple", "banana", "cherry", "monkey", "typewriter"],
-            duration: 60,
+            duration: 15,
         };
         rooms[roomId] = {
             roomId: roomId,
-            players: [{id: socket.id, playerName, progress: {caret: {caretIdx: -1, wordIdx: 0}}}],
+            players: [{id: socket.id, playerName, progress: {caret: {caretIdx: -1, wordIdx: 0}}, isHost: true}],
             config,
         };
         socket.join(roomId);
@@ -56,12 +56,16 @@ io.on("connection", (socket) => {
             return
         }
 
-        const player = {id: socket.id, playerName, progress: {caret: {caretIdx: -1, wordIdx: 0}}};
+        const player = {id: socket.id, playerName, progress: {caret: {caretIdx: -1, wordIdx: 0}}, isHost: false};
         room.players.push(player);
 
         socket.join(roomId);
         io.to(roomId).emit("roomJoined", room);
     });
+
+    socket.on("startGame", ({ roomId }) => {
+        io.to(roomId).emit("gameStarted", roomId);
+    })
 
     socket.on("updateSharedTextbox", ({input, roomId}) => {
         const room = rooms[roomId];
@@ -73,7 +77,7 @@ io.on("connection", (socket) => {
         io.to(roomId).emit("updateTextbox", input);
     })
 
-    socket.on("caretUpdate", ({caretIdx, wordIdx, roomId}) => {
+    socket.on("updateCaret", ({caretIdx, wordIdx, roomId}) => {
         const room = rooms[roomId];
         if (!room) return;
 
@@ -82,7 +86,7 @@ io.on("connection", (socket) => {
             player.progress.caret = { caretIdx, wordIdx };
         }
 
-        io.to(roomId).emit("updateCaretFromServer", {
+        io.to(roomId).emit("caretUpdated", {
             playerId: socket.id,
             caret: { caretIdx, wordIdx }
         });
@@ -93,7 +97,7 @@ io.on("connection", (socket) => {
             const room = rooms[roomId];
             if (!room) return
             room.players = room.players.filter((p) => p.id !== socket.id);
-            io.to(roomId).emit("playerUpdate", room.players);
+            io.to(roomId).emit("playerUpdated", room.players);
         }
     });
 });

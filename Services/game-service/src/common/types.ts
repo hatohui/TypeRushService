@@ -9,6 +9,7 @@ export interface Player {
     progress: {
         caret: Caret
     }
+    isHost: boolean
 }
 
 export type GameConfig = {

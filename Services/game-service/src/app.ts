@@ -40,6 +40,7 @@ io.on("connection", (socket) => {
             roomId: roomId,
             players: [{id: socket.id, playerName, progress: {caret: {caretIdx: -1, wordIdx: 0}}, isHost: true}],
             config,
+            leaderboard: []
         };
         socket.join(roomId);
         io.to(roomId).emit("roomCreated", rooms[roomId]);
@@ -94,6 +95,15 @@ io.on("connection", (socket) => {
             playerId: socket.id,
             caret: { caretIdx, wordIdx }
         });
+    })
+
+    socket.on("playerFinished", ({roomId, stats}) => {
+        const room = rooms[roomId];
+        if (!room) return;
+
+        room.leaderboard.push({playerId: socket.id, stats: stats});
+
+        io.to(roomId).emit("leaderboardUpdated", socket.id, stats);
     })
 
     socket.on("disconnect", () => {

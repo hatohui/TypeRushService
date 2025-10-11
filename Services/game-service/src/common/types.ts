@@ -21,4 +21,5 @@ export type Room = {
     roomId: string
     players: Player[]
     config: GameConfig
+    leaderboard: Player[]
 }

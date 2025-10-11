@@ -64,7 +64,11 @@ io.on("connection", (socket) => {
     });
 
     socket.on("startGame", ({ roomId }) => {
-        io.to(roomId).emit("gameStarted", roomId);
+        io.to(roomId).emit("gameStarted");
+    })
+
+    socket.on("stopGame", ({ roomId }) => {
+        io.to(roomId).emit("gameStopped");
     })
 
     socket.on("updateSharedTextbox", ({input, roomId}) => {

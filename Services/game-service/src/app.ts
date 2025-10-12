@@ -65,6 +65,11 @@ io.on("connection", (socket) => {
     });
 
     socket.on("startGame", ({ roomId }) => {
+        const room = rooms[roomId];
+        if (!room) return
+        if (room.leaderboard.length > 0) {
+            room.leaderboard = []
+        }
         io.to(roomId).emit("gameStarted");
     })
 
@@ -104,6 +109,10 @@ io.on("connection", (socket) => {
         room.leaderboard.push({playerId: socket.id, stats: stats});
 
         io.to(roomId).emit("leaderboardUpdated", socket.id, stats);
+
+        if (room.leaderboard.length === room.players.length) {
+            io.to(roomId).emit("gameFinished");
+        }
     })
 
     socket.on("disconnect", () => {

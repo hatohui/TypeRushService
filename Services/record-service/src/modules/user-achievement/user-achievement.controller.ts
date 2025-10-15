@@ -130,7 +130,10 @@ export class UserAchievementController {
     @Body(new ValidationPipe({ transform: true, whitelist: true }))
     body: AchievementIdBodyDto,
   ): Promise<UserAchievementResponseDto> {
-    return this.userAchievementService.findById(accountId, body.achievementId);
+    return this.userAchievementService.updateUserAchievement(
+      accountId,
+      body.achievementId,
+    );
   }
 
   /**

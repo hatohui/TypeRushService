@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { UserAchievementRepository } from './user-achievement.repository';
 import { CreateUserAchievementDto } from './dtos/create-user-achievement.dto';
 import {
@@ -81,6 +81,51 @@ export class UserAchievementService {
       achievementId,
     );
     return new UserAchievementResponseDto(userAchievement);
+  }
+
+  /**
+   * Update a user achievement by accountId and achievementId
+   */
+  async updateUserAchievement(
+    accountId: string,
+    achievementId: number,
+  ): Promise<UserAchievementResponseDto> {
+    this.logger.log(
+      `Updating user achievement - accountId: ${accountId}, achievementId: ${achievementId}`,
+    );
+
+    // Check if the achievement exists
+    const achievementExists =
+      await this.userAchievementRepository.checkAchievementExists(
+        achievementId,
+      );
+    if (!achievementExists) {
+      throw new NotFoundException(
+        `Achievement with ID ${achievementId} not found`,
+      );
+    }
+
+    // Check if the user achievement exists
+    const existingUserAchievement =
+      await this.userAchievementRepository.findById(accountId, achievementId);
+    if (!existingUserAchievement) {
+      throw new NotFoundException(
+        `User achievement not found for accountId: ${accountId} and achievementId: ${achievementId}`,
+      );
+    }
+
+    // Perform the update (you can add more fields to update as needed)
+    const updatedUserAchievement = await this.userAchievementRepository.update(
+      accountId,
+      achievementId,
+      {
+        // Add updateable fields here, for example:
+        // updatedAt: new Date(),
+        // status: 'completed', // if you add a status field
+      },
+    );
+
+    return new UserAchievementResponseDto(updatedUserAchievement);
   }
 
   /**

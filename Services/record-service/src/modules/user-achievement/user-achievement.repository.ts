@@ -121,4 +121,47 @@ export class UserAchievementRepository {
       throw error;
     }
   }
+
+  /**
+   * Check if an achievement exists by ID
+   */
+  async checkAchievementExists(achievementId: number): Promise<boolean> {
+    const achievement = await this.prisma.achievement.findUnique({
+      where: { id: achievementId },
+    });
+    return !!achievement;
+  }
+
+  /**
+   * Update a user achievement by composite key
+   */
+  async update(
+    accountId: string,
+    achievementId: number,
+    data: Prisma.UserAchievementUpdateInput,
+  ): Promise<UserAchievement> {
+    try {
+      return await this.prisma.userAchievement.update({
+        where: {
+          accountId_achievementId: {
+            accountId,
+            achievementId,
+          },
+        },
+        data,
+        include: {
+          achievement: true,
+        },
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2025') {
+          throw new NotFoundException(
+            `User achievement with accountId ${accountId} and achievementId ${achievementId} not found`,
+          );
+        }
+      }
+      throw error;
+    }
+  }
 }

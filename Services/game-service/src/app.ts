@@ -70,11 +70,23 @@ io.on("connection", (socket) => {
         if (room.leaderboard.length > 0) {
             room.leaderboard = []
         }
+        room?.players.forEach(player => {
+            player.progress.caret.caretIdx = -1
+            player.progress.caret.wordIdx = 0
+        })
         io.to(roomId).emit("gameStarted");
+        io.to(roomId).emit("playersUpdated", room.players);
     })
 
     socket.on("stopGame", ({ roomId }) => {
+        const room = rooms[roomId];
+        if (!room) return
+        room.players.forEach(player => {
+            player.progress.caret.caretIdx = -1
+            player.progress.caret.wordIdx = 0
+        })
         io.to(roomId).emit("gameStopped");
+        io.to(roomId).emit("playersUpdated", room.players);
     })
 
     socket.on("updateSharedTextbox", ({input, roomId}) => {
@@ -120,7 +132,7 @@ io.on("connection", (socket) => {
             const room = rooms[roomId];
             if (!room) return
             room.players = room.players.filter((p) => p.id !== socket.id);
-            io.to(roomId).emit("playerUpdated", room.players);
+            io.to(roomId).emit("playersUpdated", room.players);
         }
     });
 });

@@ -1,13 +1,21 @@
-FROM golang:1.25.1
+FROM golang:1.25.1-alpine3.22
 
 WORKDIR /app
 
+# Copy go mod and sum files
 COPY go.mod go.sum ./
+
+# Download dependencies
 RUN go mod download
 
-COPY *.go ./
-RUN go build -o /pingpong
+# Copy source code
+COPY . .
 
+# Build the application
+RUN go build -o /authorization-service ./cmd/main.go
+
+# Expose the port
 EXPOSE 8085
 
-CMD [ "/pingpong" ]
+# Run the application
+CMD [ "/authorization-service" ]

@@ -1,3 +1,4 @@
+
 export interface Caret {
     caretIdx: number
     wordIdx: number
@@ -12,8 +13,18 @@ export interface Player {
     isHost: boolean
 }
 
-export type GameConfig = {
+export const MULTIPLAYER_MODES = ['type-race', 'wave-rush'] as const
+
+export type MultiplayerMode = typeof MULTIPLAYER_MODES[number]
+
+export type GameConfig =
+    | {
     words: string[]
+    mode: 'type-race'
+}
+    | {
+    words: string[]
+    mode: 'wave-rush'
     duration: number
 }
 

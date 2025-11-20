@@ -4,7 +4,7 @@ import {createServer} from "node:http"
 import {Server} from "socket.io";
 import {v4 as uuidv4} from 'uuid';
 import cors from "cors";
-import { Caret, Player, Room, GameConfig } from './common/types.js'
+import {GameConfig, Room} from './common/types.js'
 
 const app = express();
 
@@ -30,12 +30,20 @@ const rooms: Record<string, Room> = {}
 io.on("connection", (socket) => {
     console.log("Connected:", socket.id);
 
+    socket.on("configChange", ({config, roomId}) => {
+        const room = rooms[roomId];
+        if (!room) return
+        room.config = config;
+
+        io.to(roomId).emit("configChanged", config);
+    })
+
     socket.on("createRoom", ({playerName}) => {
         const roomId = uuidv4().slice(0, 6);
-        const config = {
+        const config : GameConfig = {
             words: ["apple", "banana", "cherry", "monkey", "typewriter"],
-            duration: 15,
-        };
+            mode: 'type-race',
+        }
         rooms[roomId] = {
             roomId: roomId,
             players: [{id: socket.id, playerName, progress: {caret: {caretIdx: -1, wordIdx: 0}}, isHost: true}],

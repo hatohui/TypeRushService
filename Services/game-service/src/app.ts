@@ -4,7 +4,7 @@ import {createServer} from "node:http"
 import {Server} from "socket.io";
 import {v4 as uuidv4} from 'uuid';
 import cors from "cors";
-import {GameConfig, Room} from './common/types.js'
+import {GameConfig, Room, WaveRushRoundResultType} from './common/types.js'
 
 const app = express();
 
@@ -48,7 +48,13 @@ io.on("connection", (socket) => {
             roomId: roomId,
             players: [{id: socket.id, playerName, progress: {caret: {caretIdx: -1, wordIdx: 0}}, isHost: true}],
             config,
-            leaderboard: []
+            typeRaceGameResult: [],
+            waveRushGameResult: {
+                byPlayer: {},
+                byRound: {},
+                currentRound: 0,
+            },
+            gameStartTime: null,
         };
         socket.join(roomId);
         io.to(roomId).emit("roomCreated", rooms[roomId]);
@@ -64,6 +70,9 @@ io.on("connection", (socket) => {
             io.to(socket.id).emit("errorEvent", {type: "ROOM_FULL", message: "Room is full"})
             return
         }
+        if (room.gameStartTime) {
+            io.to(socket.id).emit("errorEvent", {type: "GAME_IN_PROGRESS", message: "Game is in progress"})
+        }
 
         const player = {id: socket.id, playerName, progress: {caret: {caretIdx: -1, wordIdx: 0}}, isHost: false};
         room.players.push(player);
@@ -75,13 +84,14 @@ io.on("connection", (socket) => {
     socket.on("startGame", ({ roomId }) => {
         const room = rooms[roomId];
         if (!room) return
-        if (room.leaderboard.length > 0) {
-            room.leaderboard = []
+        if (room.typeRaceGameResult.length > 0) {
+            room.typeRaceGameResult = []
         }
         room?.players.forEach(player => {
             player.progress.caret.caretIdx = -1
             player.progress.caret.wordIdx = 0
         })
+        room.gameStartTime = Date.now()
         io.to(roomId).emit("gameStarted");
         io.to(roomId).emit("playersUpdated", room.players);
     })
@@ -93,6 +103,12 @@ io.on("connection", (socket) => {
             player.progress.caret.caretIdx = -1
             player.progress.caret.wordIdx = 0
         })
+        room.gameStartTime = null
+        room.waveRushGameResult = {
+            byPlayer: {},
+            byRound: {},
+            currentRound: 0,
+        }
         io.to(roomId).emit("gameStopped");
         io.to(roomId).emit("playersUpdated", room.players);
     })
@@ -126,14 +142,50 @@ io.on("connection", (socket) => {
         const room = rooms[roomId];
         if (!room) return;
 
-        room.leaderboard.push({playerId: socket.id, stats: stats});
+        room.typeRaceGameResult.push({playerId: socket.id, stats: stats});
 
-        io.to(roomId).emit("leaderboardUpdated", socket.id, stats);
+        io.to(roomId).emit("typeRaceGameResultUpdated", socket.id, stats);
 
-        if (room.leaderboard.length === room.players.length) {
+        if (room.typeRaceGameResult.length === room.players.length) {
             io.to(roomId).emit("gameFinished");
         }
     })
+
+    socket.on("playerFinishRound", ({roomId, results, currentRound} : {roomId: string, results: WaveRushRoundResultType, currentRound: number}) => {
+        const room = rooms[roomId];
+        if (!room) return;
+        const gameStartTime = room.gameStartTime;
+        if (!gameStartTime) return;
+
+        room.waveRushGameResult.currentRound = currentRound;
+
+        // Check if player already submitted for this round (prevent duplicates)
+        const existingResult = room.waveRushGameResult.byRound[currentRound]?.find(
+            r => r.playerId === results.playerId
+        );
+
+        if (existingResult) {
+            console.log(`Duplicate submission from ${results.playerId} for round ${currentRound}, ignoring`);
+            return;
+        }
+
+        // Initialize arrays if they don't exist
+        if (!room.waveRushGameResult.byRound[currentRound]) {
+            room.waveRushGameResult.byRound[currentRound] = [];
+        }
+        if (!room.waveRushGameResult.byPlayer[results.playerId]) {
+            room.waveRushGameResult.byPlayer[results.playerId] = [];
+        }
+
+        // Add to byRound
+        room.waveRushGameResult.byRound[currentRound]?.push(results);
+
+        // Add to byPlayer
+        room.waveRushGameResult.byPlayer[results.playerId]?.push(results);
+
+        // Broadcast to all players in room
+        io.to(roomId).emit("playerFinishedRound", results);
+    });
 
     socket.on("disconnect", () => {
         for (const roomId in rooms) {

@@ -197,11 +197,9 @@ io.on("connection", (socket) => {
 
         if (room.waveRushGameResult.byRound[currentRound]?.length === room.players.length) {
             console.log(`✅ All players finished round ${currentRound}, starting transition`);
-
             io.to(roomId).emit("startTransition");
-
             const transitionDuration = room.config.mode === 'wave-rush'
-                ? (room.config.timeBetweenRounds || 5) * 1000 + 0.5
+                ? (room.config.timeBetweenRounds || 5) * 1000 + 1000
                 : 5000;
 
             room.transitionTimer = setTimeout(() => {

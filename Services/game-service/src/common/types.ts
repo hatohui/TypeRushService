@@ -27,6 +27,7 @@ export type GameConfig =
     mode: 'wave-rush'
     duration: number
     waves: number
+    timeBetweenRounds: number
 }
 
 export interface PlayerStats {
@@ -49,6 +50,7 @@ export type Room = {
     typeRaceGameResult: TypeRaceGameResultEntry[]
     waveRushGameResult: WaveRushGameResult
     gameStartTime: number | null
+    transitionTimer: NodeJS.Timeout | null
 }
 
 export type SingleplayerResultType = {

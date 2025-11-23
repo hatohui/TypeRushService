@@ -25,6 +25,19 @@ const io = new Server(server, {
     },
 });
 
+function resetGameState(room : Room) {
+    room.typeRaceGameResult = [];
+    room.waveRushGameResult = {
+        byPlayer: {},
+        byRound: {},
+        currentRound: 0,
+    };
+    room.gameStartTime = null;
+    room.players.forEach(player => {
+        player.progress.caret = { caretIdx: -1, wordIdx: 0 };
+    });
+}
+
 const rooms: Record<string, Room> = {}
 
 io.on("connection", (socket) => {
@@ -41,8 +54,11 @@ io.on("connection", (socket) => {
     socket.on("createRoom", ({playerName}) => {
         const roomId = uuidv4().slice(0, 6);
         const config : GameConfig = {
-            words: ["apple", "banana", "cherry", "monkey", "typewriter"],
-            mode: 'type-race',
+            words: [["apple", "banana", "cherry", "monkey", "typewriter"]],
+            mode: 'wave-rush',
+            duration: 4,
+            waves: 3,
+            timeBetweenRounds: 3,
         }
         rooms[roomId] = {
             roomId: roomId,
@@ -55,6 +71,7 @@ io.on("connection", (socket) => {
                 currentRound: 0,
             },
             gameStartTime: null,
+            transitionTimer: null,
         };
         socket.join(roomId);
         io.to(roomId).emit("roomCreated", rooms[roomId]);
@@ -83,35 +100,30 @@ io.on("connection", (socket) => {
 
     socket.on("startGame", ({ roomId }) => {
         const room = rooms[roomId];
-        if (!room) return
-        if (room.typeRaceGameResult.length > 0) {
-            room.typeRaceGameResult = []
-        }
-        room?.players.forEach(player => {
-            player.progress.caret.caretIdx = -1
-            player.progress.caret.wordIdx = 0
-        })
-        room.gameStartTime = Date.now()
+        if (!room) return;
+
+        resetGameState(room);
+        room.gameStartTime = Date.now();
+
         io.to(roomId).emit("gameStarted");
         io.to(roomId).emit("playersUpdated", room.players);
-    })
+    });
 
     socket.on("stopGame", ({ roomId }) => {
         const room = rooms[roomId];
-        if (!room) return
-        room.players.forEach(player => {
-            player.progress.caret.caretIdx = -1
-            player.progress.caret.wordIdx = 0
-        })
-        room.gameStartTime = null
-        room.waveRushGameResult = {
-            byPlayer: {},
-            byRound: {},
-            currentRound: 0,
+        if (!room) return;
+
+        // ✅ Clear transition timer if exists
+        if (room.transitionTimer) {
+            clearTimeout(room.transitionTimer);
+            room.transitionTimer = null;
         }
+
+        resetGameState(room);
+
         io.to(roomId).emit("gameStopped");
         io.to(roomId).emit("playersUpdated", room.players);
-    })
+    });
 
     socket.on("updateSharedTextbox", ({input, roomId}) => {
         const room = rooms[roomId];
@@ -151,13 +163,13 @@ io.on("connection", (socket) => {
         }
     })
 
-    socket.on("playerFinishRound", ({roomId, results, currentRound} : {roomId: string, results: WaveRushRoundResultType, currentRound: number}) => {
+    socket.on("playerFinishRound", ({roomId, results} : {roomId: string, results: WaveRushRoundResultType}) => {
         const room = rooms[roomId];
         if (!room) return;
         const gameStartTime = room.gameStartTime;
         if (!gameStartTime) return;
 
-        room.waveRushGameResult.currentRound = currentRound;
+        const currentRound = room.waveRushGameResult.currentRound;
 
         // Check if player already submitted for this round (prevent duplicates)
         const existingResult = room.waveRushGameResult.byRound[currentRound]?.find(
@@ -177,14 +189,33 @@ io.on("connection", (socket) => {
             room.waveRushGameResult.byPlayer[results.playerId] = [];
         }
 
-        // Add to byRound
         room.waveRushGameResult.byRound[currentRound]?.push(results);
-
-        // Add to byPlayer
         room.waveRushGameResult.byPlayer[results.playerId]?.push(results);
+        console.log(`Player ${results.playerId} finished round ${currentRound}. Total: ${room.waveRushGameResult.byRound[currentRound]?.length}/${room.players.length}`);
 
-        // Broadcast to all players in room
-        io.to(roomId).emit("playerFinishedRound", results);
+        io.to(roomId).emit("waveRushGameStateUpdated", room.waveRushGameResult);
+
+        if (room.waveRushGameResult.byRound[currentRound]?.length === room.players.length) {
+            console.log(`✅ All players finished round ${currentRound}, starting transition`);
+
+            io.to(roomId).emit("startTransition");
+
+            const transitionDuration = room.config.mode === 'wave-rush'
+                ? (room.config.timeBetweenRounds || 5) * 1000 + 0.5
+                : 5000;
+
+            room.transitionTimer = setTimeout(() => {
+                if (!rooms[roomId]) return;
+
+                room.waveRushGameResult.currentRound += 1;
+
+                // Broadcast new round
+                io.to(roomId).emit("waveRushGameStateUpdated", room.waveRushGameResult);
+                io.to(roomId).emit("nextRoundStarted");
+
+                room.transitionTimer = null;
+            }, transitionDuration);
+        }
     });
 
     socket.on("disconnect", () => {

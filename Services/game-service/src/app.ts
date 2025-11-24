@@ -252,7 +252,7 @@ io.on("connection", (socket) => {
     socket.on("disconnect", () => {
         for (const roomId in rooms) {
             const room = rooms[roomId];
-            if (!room) return;
+            if (!room) continue;
             const wasHost = room.players.find(p => p.id === socket.id)?.isHost;
             room.players = room.players.filter((p) => p.id !== socket.id);
 

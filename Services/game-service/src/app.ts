@@ -252,8 +252,22 @@ io.on("connection", (socket) => {
     socket.on("disconnect", () => {
         for (const roomId in rooms) {
             const room = rooms[roomId];
-            if (!room) return
+            if (!room) return;
+            const wasHost = room.players.find(p => p.id === socket.id)?.isHost;
             room.players = room.players.filter((p) => p.id !== socket.id);
+
+            if (room.players.length === 0) {
+                delete rooms[roomId];
+                continue;
+            }
+
+            // Reassign host if the host disconnected
+            if (wasHost && room.players.length > 0) {
+                if (room.players[0]) {
+                    room.players[0].isHost = true;
+                    io.to(roomId).emit("hostChanged", room.players[0].id);
+                }
+            }
             io.to(roomId).emit("playersUpdated", room.players);
         }
     });

@@ -131,6 +131,12 @@ io.on("connection", (socket) => {
         const room = rooms[roomId];
         if (!room) return;
 
+        const player = room.players.find(p => p.id === socket.id);
+        if (!player?.isHost) {
+            io.to(socket.id).emit("errorEvent", {type: "UNAUTHORIZED", message: "Only host can stop the game"});
+            return;
+        }
+
         resetGameState(room);
 
         io.to(roomId).emit("gameStopped");

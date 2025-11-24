@@ -172,6 +172,12 @@ io.on("connection", (socket) => {
         const room = rooms[roomId];
         if (!room) return;
 
+        const isInRoom = room.players.find(p => p.id === socket.id)
+        if (!isInRoom) {
+            io.to(socket.id).emit("errorEvent", {type: "NOT_IN_ROOM", message: "You are not in this room"});
+            return;
+        }
+
         const existingResult = room.typeRaceGameResult.find(
                        r => r.playerId === socket.id
         );
@@ -193,6 +199,16 @@ io.on("connection", (socket) => {
     socket.on("playerFinishRound", ({roomId, results} : {roomId: string, results: WaveRushRoundResultType}) => {
         const room = rooms[roomId];
         if (!room) return;
+
+        const isInRoom = room.players.find(p => p.id === socket.id);
+        if (!isInRoom) {
+            io.to(socket.id).emit("errorEvent", {type: "NOT_IN_ROOM", message: "You are not in this room"});
+            return;
+        }
+
+        // Never trust client-sent playerId: override with socket id
+        results.playerId = socket.id;
+
         const gameStartTime = room.gameStartTime;
         if (!gameStartTime) return;
 

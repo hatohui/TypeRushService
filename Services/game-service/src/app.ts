@@ -50,6 +50,13 @@ io.on("connection", (socket) => {
     socket.on("configChange", ({config, roomId}) => {
         const room = rooms[roomId];
         if (!room) return
+
+        const player = room.players.find(p => p.id === socket.id);
+        if (!player?.isHost) {
+            io.to(socket.id).emit("errorEvent", {type: "UNAUTHORIZED", message: "Only host can change config"});
+            return;
+        }
+
         room.config = config;
 
         io.to(roomId).emit("configChanged", config);
@@ -93,6 +100,7 @@ io.on("connection", (socket) => {
         }
         if (room.gameStartTime) {
             io.to(socket.id).emit("errorEvent", {type: "GAME_IN_PROGRESS", message: "Game is in progress"})
+            return
         }
 
         const player = {id: socket.id, playerName, progress: {caret: {caretIdx: -1, wordIdx: 0}}, isHost: false};
@@ -106,6 +114,12 @@ io.on("connection", (socket) => {
         const room = rooms[roomId];
         if (!room) return;
 
+        const player = room.players.find(p => p.id === socket.id);
+        if (!player?.isHost) {
+              io.to(socket.id).emit("errorEvent", {type: "UNAUTHORIZED", message: "Only host can start game"});
+             return;
+        }
+
         resetGameState(room);
         room.gameStartTime = Date.now();
 
@@ -116,11 +130,6 @@ io.on("connection", (socket) => {
     socket.on("stopGame", ({ roomId }) => {
         const room = rooms[roomId];
         if (!room) return;
-
-        if (room.transitionTimer) {
-            clearTimeout(room.transitionTimer);
-            room.transitionTimer = null;
-        }
 
         resetGameState(room);
 
@@ -156,6 +165,15 @@ io.on("connection", (socket) => {
     socket.on("playerFinished", ({roomId, stats}) => {
         const room = rooms[roomId];
         if (!room) return;
+
+        const existingResult = room.typeRaceGameResult.find(
+                       r => r.playerId === socket.id
+        );
+
+        if (existingResult) {
+         console.log(`Duplicate submission from ${socket.id}, ignoring`);
+          return;
+        }
 
         room.typeRaceGameResult.push({playerId: socket.id, stats: stats});
 
@@ -209,6 +227,12 @@ io.on("connection", (socket) => {
                 if (!rooms[roomId]) return;
 
                 room.waveRushGameResult.currentRound += 1;
+
+                if (room.config.mode === 'wave-rush' && room.waveRushGameResult.currentRound >= room.config.waves) {
+                    io.to(roomId).emit("gameFinished")
+                    room.transitionTimer = null;
+                    return;
+                }
 
                 // Broadcast new round
                 io.to(roomId).emit("waveRushGameStateUpdated", room.waveRushGameResult);

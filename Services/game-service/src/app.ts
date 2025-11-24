@@ -26,6 +26,10 @@ const io = new Server(server, {
 });
 
 function resetGameState(room : Room) {
+    if (room.transitionTimer) {
+        clearTimeout(room.transitionTimer);
+        room.transitionTimer = null;
+    }
     room.typeRaceGameResult = [];
     room.waveRushGameResult = {
         byPlayer: {},
@@ -113,7 +117,6 @@ io.on("connection", (socket) => {
         const room = rooms[roomId];
         if (!room) return;
 
-        // ✅ Clear transition timer if exists
         if (room.transitionTimer) {
             clearTimeout(room.transitionTimer);
             room.transitionTimer = null;

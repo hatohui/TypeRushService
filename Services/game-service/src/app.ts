@@ -172,6 +172,10 @@ io.on("connection", (socket) => {
         const room = rooms[roomId];
         if (!room) return;
 
+        const mode = room.config.mode;
+        const gameStartTime = room.gameStartTime;
+        if (!gameStartTime || mode !== "type-race") return;
+
         const isInRoom = room.players.find(p => p.id === socket.id)
         if (!isInRoom) {
             io.to(socket.id).emit("errorEvent", {type: "NOT_IN_ROOM", message: "You are not in this room"});
@@ -200,6 +204,10 @@ io.on("connection", (socket) => {
         const room = rooms[roomId];
         if (!room) return;
 
+        const mode = room.config.mode;
+        const gameStartTime = room.gameStartTime;
+        if (!gameStartTime || mode !== "wave-rush") return;
+
         const isInRoom = room.players.find(p => p.id === socket.id);
         if (!isInRoom) {
             io.to(socket.id).emit("errorEvent", {type: "NOT_IN_ROOM", message: "You are not in this room"});
@@ -208,9 +216,6 @@ io.on("connection", (socket) => {
 
         // Never trust client-sent playerId: override with socket id
         results.playerId = socket.id;
-
-        const gameStartTime = room.gameStartTime;
-        if (!gameStartTime) return;
 
         const currentRound = room.waveRushGameResult.currentRound;
 

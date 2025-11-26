@@ -2,7 +2,6 @@ import {
   Controller,
   Get,
   Post,
-  Patch,
   Delete,
   Body,
   Param,
@@ -99,41 +98,6 @@ export class UserAchievementController {
       accountId,
       achievementId: body.achievementId,
     });
-  }
-
-  /**
-   * Update/verify an achievement for an account
-   * PATCH /user-achievements/:accountId
-   */
-  @Patch(':accountId')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Update an achievement for an account' })
-  @ApiParam({ name: 'accountId', type: 'string', description: 'Account ID' })
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        achievementId: { type: 'number', example: 1 },
-      },
-      required: ['achievementId'],
-    },
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Achievement updated successfully',
-    type: UserAchievementResponseDto,
-  })
-  @ApiResponse({ status: 400, description: 'Invalid input' })
-  @ApiResponse({ status: 404, description: 'Achievement not found' })
-  async update(
-    @Param('accountId') accountId: string,
-    @Body(new ValidationPipe({ transform: true, whitelist: true }))
-    body: AchievementIdBodyDto,
-  ): Promise<UserAchievementResponseDto> {
-    return this.userAchievementService.updateUserAchievement(
-      accountId,
-      body.achievementId,
-    );
   }
 
   /**

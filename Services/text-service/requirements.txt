@@ -1,3 +1,6 @@
 fastapi[standard]
 pydantic
 pydantic_settings
+mangum
+boto3
+botocore

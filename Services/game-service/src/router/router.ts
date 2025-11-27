@@ -11,5 +11,7 @@ router.post("/accounts/transfer", AccountController.transfer);
 
 // monitoring
 router.get("/health", HealthController.health);
+router.get("/health/live", HealthController.liveness);
+router.get("/health/ready", HealthController.readiness);
 
 export default router;

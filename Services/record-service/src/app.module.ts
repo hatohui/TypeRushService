@@ -1,6 +1,7 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { PersonalRecordModule } from './modules/personal-record/personal-record.module';
+import { HealthModule } from './modules/health/health.module';
 import { LoggerMiddleware } from './common/middlewares/logger.middleware';
 import { APP_FILTER } from '@nestjs/core';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
@@ -15,6 +16,7 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
   imports: [
     ConfigModule.forRoot({ envFilePath: '.env', isGlobal: true }),
     PersonalRecordModule,
+    HealthModule,
   ],
 })
 export class AppModule implements NestModule {

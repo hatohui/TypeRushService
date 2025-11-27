@@ -34,7 +34,7 @@ resource "aws_lambda_function" "record_service" {
   source_code_hash = fileexists("${path.root}/${var.record_service_package_path}") ? filebase64sha256("${path.root}/${var.record_service_package_path}") : null
 
   runtime       = "nodejs20.x"
-  handler       = "lambda.handler"
+  handler       = "dist/lambda.handler"
   architectures = ["arm64"]
 
   memory_size = var.lambda_record_memory
@@ -101,7 +101,7 @@ resource "aws_lambda_function" "text_service" {
   source_code_hash = fileexists("${path.root}/${var.text_service_package_path}") ? filebase64sha256("${path.root}/${var.text_service_package_path}") : null
 
   runtime       = "python3.12"
-  handler       = "lambda_handler.lambda_handler"
+  handler       = "lambda_handler.handler"
   architectures = ["arm64"]
 
   memory_size = var.lambda_text_memory

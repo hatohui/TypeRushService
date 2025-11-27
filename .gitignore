@@ -136,6 +136,7 @@ temp/
 *.swp
 
 # === Secrets / Keys / Certificates ===
+.terraform
 *.pem
 *.key
 *.crt

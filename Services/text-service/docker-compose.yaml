@@ -1,22 +1,13 @@
-name: typerush-textservice-deployment
+name: typing-text-service
 
 services:
-  mongo:
-    image: mongo
-    restart: always
+  text-service:
+    build: .
     ports:
-      - 27017:27017
+      - "8000:8000"
+    env_file:
+      - .env
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: 12345
-
-  mongo-express:
-    image: mongo-express
-    restart: always
-    ports:
-      - 8081:8081
-    environment:
-      ME_CONFIG_MONGODB_URL: mongodb://root:12345@mongo:27017/
-      ME_CONFIG_BASICAUTH_ENABLED: true
-      ME_CONFIG_BASICAUTH_USERNAME: admin
-      ME_CONFIG_BASICAUTH_PASSWORD: 12345
+      PORT: ${PORT:-8000}
+      AWS_REGION: ${AWS_REGION:-ap-southeast-2}
+      AWS_LAMBDA_FUNCTION_NAME: ${AWS_LAMBDA_FUNCTION_NAME:-text-service-lambda}

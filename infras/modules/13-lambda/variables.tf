@@ -70,11 +70,67 @@ variable "record_service_package_path" {
   default     = "../build/record-service-lambda.zip"
 }
 
+# Optional: Use S3 object instead of local filename
+variable "record_use_s3" {
+  description = "If true, deploy Record Service Lambda from S3 (s3_bucket + s3_key) instead of local filename"
+  type        = bool
+  default     = false
+}
+
+variable "record_service_s3_bucket" {
+  description = "S3 bucket name where record service package is stored"
+  type        = string
+  default     = ""
+}
+
+variable "record_service_s3_key" {
+  description = "S3 object key (path) for record service package"
+  type        = string
+  default     = ""
+}
+
+variable "record_service_s3_object_version" {
+  description = "Optional S3 object version for record service package"
+  type        = string
+  default     = ""
+}
+
+# (Duplicate S3 deployment option for the Record Service was removed —
+# the earlier declarations are kept to avoid variable name collisions.)
+
 variable "text_service_package_path" {
   description = "Path to the Text Service Lambda deployment package (ZIP file) relative to Terraform root"
   type        = string
   default     = "../build/text-service-lambda.zip"
 }
+
+# Optional: Use S3 object instead of local filename
+variable "text_use_s3" {
+  description = "If true, deploy Text Service Lambda from S3 (s3_bucket + s3_key) instead of local filename"
+  type        = bool
+  default     = false
+}
+
+variable "text_service_s3_bucket" {
+  description = "S3 bucket name where text service package is stored"
+  type        = string
+  default     = ""
+}
+
+variable "text_service_s3_key" {
+  description = "S3 object key (path) for text service package"
+  type        = string
+  default     = ""
+}
+
+variable "text_service_s3_object_version" {
+  description = "Optional S3 object version for text service package"
+  type        = string
+  default     = ""
+}
+
+# (Duplicate S3 deployment option for the Text Service was removed —
+# the earlier declarations are kept to avoid variable name collisions.)
 
 # ========================================
 # Lambda Function Configuration

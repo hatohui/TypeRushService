@@ -8,14 +8,14 @@ owner        = "hatospapal@example.com"
 
 # Region Configuration
 aws_region         = "ap-southeast-1"
-availability_zones = ["ap-southeast-1a"]
+availability_zones = ["ap-southeast-1a", "ap-southeast-1b"]
 
 # Networking
 vpc_cidr              = "10.0.0.0/16"
-public_subnet_cidrs   = ["10.0.1.0/24"]
-private_subnet_cidrs  = ["10.0.101.0/24"]
-database_subnet_cidrs = ["10.0.201.0/24"]
-cache_subnet_cidrs    = ["10.0.202.0/24"]
+public_subnet_cidrs   = ["10.0.1.0/24", "10.0.2.0/24"]
+private_subnet_cidrs  = ["10.0.101.0/24", "10.0.102.0/24"]
+database_subnet_cidrs = ["10.0.201.0/24", "10.0.202.0/24"]
+cache_subnet_cidrs    = ["10.0.203.0/24", "10.0.204.0/24"]
 
 # RDS PostgreSQL
 rds_instance_class          = "db.t3.micro"

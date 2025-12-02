@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from mangum import Mangum
 from pydantic import Field
 from pydantic_settings import BaseSettings
 
@@ -65,3 +66,7 @@ async def root():
             "docs": "/docs",
         },
     }
+
+
+# AWS Lambda handler via Mangum
+handler = Mangum(app, lifespan="auto")

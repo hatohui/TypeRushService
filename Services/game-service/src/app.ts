@@ -249,7 +249,9 @@ io.on("connection", (socket) => {
 
         io.to(roomId).emit("waveRushGameStateUpdated", room.waveRushGameResult);
 
-        if (room.waveRushGameResult.byRound[currentRound]?.length === room.players.length) {
+        const activePlayersCount = room.players.filter(player => !player.isDisconnected).length;
+
+        if (room.waveRushGameResult.byRound[currentRound]?.length === activePlayersCount) {
             console.log(`✅ All players finished round ${currentRound}, starting transition`);
             io.to(roomId).emit("startTransition");
             const transitionDuration = room.config.mode === 'wave-rush'
@@ -265,7 +267,6 @@ io.on("connection", (socket) => {
                     io.to(roomId).emit("gameFinished")
                     resetGameState(room)
                     io.to(roomId).emit("playersUpdated", room.players)
-                    room.transitionTimer = null;
                     return;
                 }
 

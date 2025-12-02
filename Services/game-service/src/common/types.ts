@@ -11,6 +11,7 @@ export interface Player {
         caret: Caret
     }
     isHost: boolean
+    isDisconnected: boolean
 }
 
 export const MULTIPLAYER_MODES = ['type-race', 'wave-rush'] as const

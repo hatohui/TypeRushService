@@ -40,6 +40,7 @@ function resetGameState(room : Room) {
     room.players.forEach(player => {
         player.progress.caret = { caretIdx: -1, wordIdx: 0 };
     });
+    room.players = room.players.filter(player => !player.isDisconnected)
 }
 
 const rooms: Record<string, Room> = {}
@@ -65,15 +66,15 @@ io.on("connection", (socket) => {
     socket.on("createRoom", ({playerName}) => {
         const roomId = uuidv4().slice(0, 6);
         const config : GameConfig = {
-            words: [["apple", "banana", "cherry", "monkey", "typewriter"]],
-            mode: 'wave-rush',
-            duration: 4,
-            waves: 3,
-            timeBetweenRounds: 3,
+            words: ["apple", "banana", "cherry", "monkey", "typewriter"],
+            mode: 'type-race',
+            // duration: 5,
+            // waves: 3,
+            // timeBetweenRounds: 3,
         }
         rooms[roomId] = {
             roomId: roomId,
-            players: [{id: socket.id, playerName, progress: {caret: {caretIdx: -1, wordIdx: 0}}, isHost: true}],
+            players: [{id: socket.id, playerName, progress: {caret: {caretIdx: -1, wordIdx: 0}}, isHost: true, isDisconnected: false}],
             config,
             typeRaceGameResult: [],
             waveRushGameResult: {
@@ -103,7 +104,7 @@ io.on("connection", (socket) => {
             return
         }
 
-        const player = {id: socket.id, playerName, progress: {caret: {caretIdx: -1, wordIdx: 0}}, isHost: false};
+        const player = {id: socket.id, playerName, progress: {caret: {caretIdx: -1, wordIdx: 0}}, isHost: false, isDisconnected: false};
         room.players.push(player);
 
         socket.join(roomId);
@@ -124,7 +125,7 @@ io.on("connection", (socket) => {
         room.gameStartTime = Date.now();
 
         io.to(roomId).emit("gameStarted");
-        io.to(roomId).emit("playersUpdated", room.players);
+        //io.to(roomId).emit("playersUpdated", room.players);
     });
 
     socket.on("stopGame", ({ roomId }) => {
@@ -195,9 +196,14 @@ io.on("connection", (socket) => {
 
         io.to(roomId).emit("typeRaceGameResultUpdated", socket.id, stats);
 
-        if (room.typeRaceGameResult.length === room.players.length) {
+        const activePlayersCount = room.players.filter(player => !player.isDisconnected).length; //only count isDisconnected = false
+
+        if (room.typeRaceGameResult.length === activePlayersCount) {
             io.to(roomId).emit("gameFinished");
         }
+
+        resetGameState(room);
+        io.to(roomId).emit("playersUpdated", room.players);
     })
 
     socket.on("playerFinishRound", ({roomId, results} : {roomId: string, results: WaveRushRoundResultType}) => {
@@ -257,6 +263,8 @@ io.on("connection", (socket) => {
 
                 if (room.config.mode === 'wave-rush' && room.waveRushGameResult.currentRound >= room.config.waves) {
                     io.to(roomId).emit("gameFinished")
+                    resetGameState(room)
+                    io.to(roomId).emit("playersUpdated", room.players)
                     room.transitionTimer = null;
                     return;
                 }
@@ -274,22 +282,31 @@ io.on("connection", (socket) => {
         for (const roomId in rooms) {
             const room = rooms[roomId];
             if (!room) continue;
-            const wasHost = room.players.find(p => p.id === socket.id)?.isHost;
-            room.players = room.players.filter((p) => p.id !== socket.id);
 
-            if (room.players.length === 0) {
-                delete rooms[roomId];
-                continue;
-            }
+            // Find the player in the room
+            const player = room.players.find(p => p.id === socket.id);
+            if (!player) continue;
 
-            // Reassign host if the host disconnected
-            if (wasHost && room.players.length > 0) {
-                if (room.players[0]) {
-                    room.players[0].isHost = true;
-                    io.to(roomId).emit("hostChanged", room.players[0].id);
+            player.isDisconnected = true;
+            console.log('player disconnected:', player.playerName);
+
+            if (player.isHost) {
+                player.isHost = false; // unset host
+                const nextHost = room.players.find(p => !p.isDisconnected);
+                if (nextHost) {
+                    nextHost.isHost = true;
+                    console.log('new host assigned:', nextHost.playerName);
+                    io.to(nextHost.id).emit("hostChanged")
                 }
             }
+
             io.to(roomId).emit("playersUpdated", room.players);
+
+            const allDisconnected = room.players.every(p => p.isDisconnected);
+            if (allDisconnected) {
+                console.log('all players disconnected, deleting room:', roomId);
+                delete rooms[roomId];
+            }
         }
     });
 });

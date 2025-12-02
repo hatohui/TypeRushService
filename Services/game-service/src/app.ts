@@ -301,6 +301,10 @@ io.on("connection", (socket) => {
                 }
             }
 
+            if (!room.gameStartTime) {
+                room.players = room.players.filter(player => !player.isDisconnected);
+            }
+
             io.to(roomId).emit("playersUpdated", room.players);
 
             const allDisconnected = room.players.every(p => p.isDisconnected);

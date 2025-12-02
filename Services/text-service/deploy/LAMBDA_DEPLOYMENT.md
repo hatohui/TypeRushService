@@ -50,33 +50,37 @@ The Lambda execution role needs:
     "Version": "2012-10-17",
     "Statement": [
         {
+            "Sid": "InvokeBedrockAgent",
             "Effect": "Allow",
-            "Action": [
-                "dynamodb:Scan",
-                "dynamodb:Query",
-                "dynamodb:GetItem"
-            ],
+            "Action": ["bedrock:InvokeAgent"],
+            "Resource": "arn:aws:bedrock:<REGION>:<ACCOUNT_ID>:agent-alias/<AGENT_ID>/<ALIAS_ID>"
+        },
+        {
+            "Sid": "BedrockAgentManagement",
+            "Effect": "Allow",
+            "Action": ["bedrock:GetAgent", "bedrock:ListAgents"],
+            "Resource": "arn:aws:bedrock:<REGION>:<ACCOUNT_ID>:agent/<AGENT_ID>"
+        },
+        {
+            "Sid": "DynamoDBAccess",
+            "Effect": "Allow",
+            "Action": ["dynamodb:Scan", "dynamodb:Query", "dynamodb:GetItem"],
             "Resource": "arn:aws:dynamodb:*:*:table/wordsntexts"
         },
         {
+            "Sid": "CloudWatchLogs",
             "Effect": "Allow",
-            "Action": [
-                "bedrock:InvokeAgent"
-            ],
-            "Resource": "*"
-        },
-        {
-            "Effect": "Allow",
-            "Action": [
-                "logs:CreateLogGroup",
-                "logs:CreateLogStream",
-                "logs:PutLogEvents"
-            ],
-            "Resource": "arn:aws:logs:*:*:*"
+            "Action": ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"],
+            "Resource": [
+                "arn:aws:logs:<REGION>:<ACCOUNT_ID>:*",
+                "arn:aws:logs:<REGION>:<ACCOUNT_ID>:log-group:/aws/lambda/text_service:*"
+            ]
         }
     ]
 }
 ```
+
+> **Note:** Replace `<REGION>`, `<ACCOUNT_ID>`, `<AGENT_ID>`, and `<ALIAS_ID>` with your actual values.
 
 ## API Endpoints
 

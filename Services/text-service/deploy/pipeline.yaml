@@ -29,6 +29,23 @@ Parameters:
       - staging
       - prod
 
+  DynamoDBTableName:
+    Type: String
+    Default: wordsntexts
+    Description: DynamoDB table name for words and texts
+
+  BedrockAgentId:
+    Type: String
+    Default: ""
+    Description: Bedrock Agent ID (10 alphanumeric chars) - pass at deploy time
+    NoEcho: true
+
+  BedrockAgentAlias:
+    Type: String
+    Default: ""
+    Description: Bedrock Agent Alias ID (10 alphanumeric chars) - pass at deploy time
+    NoEcho: true
+
 Resources:
   # S3 Bucket for pipeline artifacts
   ArtifactBucket:
@@ -151,6 +168,14 @@ Resources:
             Value: !Ref LambdaFunctionName
           - Name: ENVIRONMENT
             Value: !Ref Environment
+          - Name: AWS_REGION
+            Value: !Ref AWS::Region
+          - Name: DYNAMODB_TABLE_NAME
+            Value: !Ref DynamoDBTableName
+          - Name: BEDROCK_AGENT_ID
+            Value: !Ref BedrockAgentId
+          - Name: BEDROCK_AGENT_ALIAS
+            Value: !Ref BedrockAgentAlias
       Source:
         Type: CODEPIPELINE
         BuildSpec: Services/text-service/deploy/buildspec.yml

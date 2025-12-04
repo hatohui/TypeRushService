@@ -31,12 +31,15 @@ export type GameConfig =
     timeBetweenRounds: number
 }
 
-export interface PlayerStats {
+export type PlayerStats = {
     accuracy: number
     wpm: number
     rawWpm: number
     correct: number
     incorrect: number
+    overflow: number
+    missed: number
+    timeElapsed: number
 }
 
 export interface TypeRaceGameResultEntry {
@@ -54,15 +57,7 @@ export type Room = {
     transitionTimer: NodeJS.Timeout | null
 }
 
-export type SingleplayerResultType = {
-    accuracy: number
-    wpm: number
-    rawWpm: number
-    correct: number
-    incorrect: number
-}
-
-export type WaveRushRoundResultType = SingleplayerResultType & {
+export type WaveRushRoundResultType = PlayerStats & {
     playerId: string
     timeElapsed: number
 }

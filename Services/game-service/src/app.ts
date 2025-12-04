@@ -165,6 +165,7 @@ io.on("connection", (socket) => {
 
         const mode = room.config.mode;
         const gameStartTime = room.gameStartTime;
+
         if (!gameStartTime || mode !== "type-race") return;
 
         const isInRoom = room.players.find(p => p.id === socket.id)
@@ -188,13 +189,11 @@ io.on("connection", (socket) => {
 
         const activePlayersCount = room.players.filter(player => !player.isDisconnected).length; //only count isDisconnected = false
 
-        console.log({activePlayersCount, stats})
-
         if (room.typeRaceGameResult.length === activePlayersCount) {
             io.to(roomId).emit("gameFinished");
+            resetGameState(room);
         }
 
-        resetGameState(room);
         io.to(roomId).emit("playersUpdated", room.players);
     })
 

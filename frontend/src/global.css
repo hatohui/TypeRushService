@@ -1,0 +1,128 @@
+@import 'tailwindcss';
+
+@layer utilities {
+	.center-horizontal {
+		@apply flex justify-center items-center;
+	}
+    .center-vertical {
+        @apply flex flex-col justify-center items-center;
+    }
+    .min-w-outer-container {
+        @apply min-w-[450px];
+    }
+}
+
+#root, body {
+    background-color: #383A3E;
+    height: 100vh;
+}
+
+@keyframes blink {
+    0%,
+    50% {
+        opacity: 1;
+    }
+    51%,
+    100% {
+        opacity: 0;
+    }
+}
+
+.caret-blink {
+    animation: blink 1s infinite;
+}
+
+.leaderboard {
+    width: 100%;
+    max-width: 1980px;
+    margin: 0 auto;
+    padding: 0 40px;
+}
+.leaderboard h1 {
+    margin-bottom: 20px;
+}
+
+.leaderboard-container {
+    display: flex;
+    gap: 5%;
+    align-items: flex-start;
+}
+
+.leaderboard-sidebar {
+    width: 20%;
+    min-width: 200px;
+}
+
+.leaderboard-modes {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.mode-btn {
+    padding: 15px 20px;
+    background-color: #f0f0f0;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.mode-btn:hover {
+    background-color: #e0e0e0;
+}
+
+.mode-btn.active {
+    background-color: #029BE8;
+    color: white;
+    border-color: #029BE8;
+}
+
+.leaderboard-content {
+    width: 60%;
+    flex: 1;
+    border-left: 5px solid #029BE8;
+    padding-left: 5%;
+}
+
+.leaderboard-entries {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.leaderboard-entry {
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    justify-content: space-between;
+}
+
+.entry-rank {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    min-width: 50px;
+}
+
+.entry-name {
+    font-size: 20px;
+    font-weight: bold;
+    color: #029BE8;
+    min-width: 150px;
+    flex-shrink: 0;
+}
+
+.entry-stats {
+    font-size: 18px;
+    font-weight: 500;
+    color: #333;
+    text-align: right;
+    margin-left: auto;
+}

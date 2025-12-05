@@ -1,0 +1,19 @@
+# Add .dockerignore to exclude unnecessary files
+node_modules
+npm-debug.log
+.env
+.env.*
+!.env.example
+dist
+coverage
+.git
+.gitignore
+README.md
+.prettierrc
+jest.config.ts
+nodemon.json
+test
+*.test.ts
+*.test.js
+.vscode
+.idea

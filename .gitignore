@@ -103,9 +103,6 @@ pip-wheel-metadata/
 # Virtual environments
 venv/
 .venv/
-env/
-ENV/
-env.bak/
 # Pytest cache
 .pytest_cache/
 # MyPy / type checkers
@@ -139,8 +136,9 @@ temp/
 *.swp
 
 # === Secrets / Keys / Certificates ===
+.terraform
 *.pem
 *.key
 *.crt
-
+prompt.md
 # End of file

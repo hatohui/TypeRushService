@@ -23,18 +23,29 @@ resource "aws_cloudwatch_log_group" "record_service" {
   )
 }
 
+# Placeholder Lambda deployment package for Record Service
+# This will be replaced by CI/CD pipeline (CodePipeline + CodeBuild)
+data "archive_file" "record_service_placeholder" {
+  type        = "zip"
+  output_path = "${path.module}/.terraform/record-service-placeholder.zip"
+
+  source {
+    content  = "exports.handler = async (event) => { return { statusCode: 503, body: JSON.stringify({ message: 'Lambda not deployed yet. Deploy via CI/CD pipeline.' }) }; };"
+    filename = "index.js"
+  }
+}
+
 # Record Service Lambda Function
+# Note: This creates a placeholder. Actual code deployed via CodePipeline in module 26
 resource "aws_lambda_function" "record_service" {
   function_name = "${var.project_name}-${var.environment}-record-service"
   role          = var.record_service_lambda_role_arn
 
-  # Deployment package from build directory
-  # Build using: cd services/record-service && ./build-lambda.ps1
-  filename         = "${path.root}/${var.record_service_package_path}"
-  source_code_hash = fileexists("${path.root}/${var.record_service_package_path}") ? filebase64sha256("${path.root}/${var.record_service_package_path}") : null
+  filename         = data.archive_file.record_service_placeholder.output_path
+  source_code_hash = data.archive_file.record_service_placeholder.output_base64sha256
 
   runtime       = "nodejs20.x"
-  handler       = "dist/lambda.handler"
+  handler       = "index.handler"
   architectures = ["arm64"]
 
   memory_size = var.lambda_record_memory
@@ -50,7 +61,6 @@ resource "aws_lambda_function" "record_service" {
       NODE_ENV      = "production"
       LOG_LEVEL     = "info"
       DB_SECRET_ARN = var.rds_secret_arn
-      AWS_REGION    = data.aws_region.current.id
     }
   }
 
@@ -61,6 +71,7 @@ resource "aws_lambda_function" "record_service" {
     {
       Name    = "${var.project_name}-${var.environment}-record-service"
       Service = "record-service"
+      Note    = "Placeholder - Deploy actual code via CodePipeline"
     }
   )
 
@@ -68,6 +79,7 @@ resource "aws_lambda_function" "record_service" {
     ignore_changes = [
       filename,
       source_code_hash,
+      handler,
     ]
   }
 }
@@ -90,18 +102,29 @@ resource "aws_cloudwatch_log_group" "text_service" {
   )
 }
 
+# Placeholder Lambda deployment package for Text Service
+# This will be replaced by CI/CD pipeline (CodePipeline + CodeBuild)
+data "archive_file" "text_service_placeholder" {
+  type        = "zip"
+  output_path = "${path.module}/.terraform/text-service-placeholder.zip"
+
+  source {
+    content  = "def handler(event, context):\n    return {\n        'statusCode': 503,\n        'body': '{\"message\": \"Lambda not deployed yet. Deploy via CI/CD pipeline.\"}',\n        'headers': {'Content-Type': 'application/json'}\n    }"
+    filename = "lambda_function.py"
+  }
+}
+
 # Text Service Lambda Function
+# Note: This creates a placeholder. Actual code deployed via CodePipeline in module 26
 resource "aws_lambda_function" "text_service" {
   function_name = "${var.project_name}-${var.environment}-text-service"
   role          = var.text_service_lambda_role_arn
 
-  # Deployment package from build directory
-  # Build using: cd services/text-service && ./build-lambda.ps1
-  filename         = "${path.root}/${var.text_service_package_path}"
-  source_code_hash = fileexists("${path.root}/${var.text_service_package_path}") ? filebase64sha256("${path.root}/${var.text_service_package_path}") : null
+  filename         = data.archive_file.text_service_placeholder.output_path
+  source_code_hash = data.archive_file.text_service_placeholder.output_base64sha256
 
   runtime       = "python3.12"
-  handler       = "lambda_handler.handler"
+  handler       = "lambda_function.handler"
   architectures = ["arm64"]
 
   memory_size = var.lambda_text_memory
@@ -114,11 +137,10 @@ resource "aws_lambda_function" "text_service" {
 
   environment {
     variables = {
-      ENVIRONMENT         = "production"
+      APP_ENV             = "production"
       LOG_LEVEL           = "INFO"
       DYNAMODB_TABLE_NAME = var.dynamodb_table_name
       BEDROCK_MODEL_ID    = "amazon.titan-text-express-v1"
-      AWS_REGION          = data.aws_region.current.id
     }
   }
 
@@ -129,6 +151,7 @@ resource "aws_lambda_function" "text_service" {
     {
       Name    = "${var.project_name}-${var.environment}-text-service"
       Service = "text-service"
+      Note    = "Placeholder - Deploy actual code via CodePipeline"
     }
   )
 
@@ -136,6 +159,7 @@ resource "aws_lambda_function" "text_service" {
     ignore_changes = [
       filename,
       source_code_hash,
+      handler,
     ]
   }
 }

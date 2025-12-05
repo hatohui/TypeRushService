@@ -125,6 +125,13 @@ variable "frontend_s3_bucket_name" {
   default     = ""
 }
 
+# Artifacts bucket for build outputs (used to upload lambda zips)
+variable "artifacts_bucket_name" {
+  description = "S3 bucket name for pipeline artifacts (used by build projects to upload lambda zips)"
+  type        = string
+  default     = ""
+}
+
 variable "cloudfront_distribution_id" {
   description = "ID of the CloudFront distribution for cache invalidation"
   type        = string

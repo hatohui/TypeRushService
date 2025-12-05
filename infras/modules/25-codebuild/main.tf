@@ -95,6 +95,10 @@ resource "aws_codebuild_project" "record_service" {
       name  = "LAMBDA_FUNCTION_NAME"
       value = var.record_lambda_name
     }
+    environment_variable {
+      name  = "ARTIFACTS_BUCKET"
+      value = var.artifacts_bucket_name
+    }
   }
 
   source {
@@ -204,6 +208,10 @@ resource "aws_codebuild_project" "text_service" {
     environment_variable {
       name  = "LAMBDA_FUNCTION_NAME"
       value = var.text_lambda_name
+    }
+    environment_variable {
+      name  = "ARTIFACTS_BUCKET"
+      value = var.artifacts_bucket_name
     }
   }
 

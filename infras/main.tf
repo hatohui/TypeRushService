@@ -155,7 +155,7 @@ module "rds" {
   monitoring_interval             = 0 # Disable enhanced monitoring for dev
 
   # Security configuration
-  multi_az            = false # Single-AZ for dev
+  multi_az            = false 
   publicly_accessible = false
   deletion_protection = false # Allow deletion in dev
 }
@@ -326,6 +326,25 @@ module "lambda" {
   lambda_text_memory    = var.lambda_text_memory
   lambda_text_timeout   = var.lambda_text_timeout
   log_retention_days    = var.log_retention_days
+
+  # ------------------------------------------------------------------
+  # NOTE (bootstrapping): If you'd like lambdas to load code from the
+  # CodePipeline artifacts bucket (manual upload or CI/CD), you can set:
+  #
+  # record_use_s3 = true
+  # record_service_s3_bucket = "${var.project_name}-${var.environment}-pipeline-artifacts"
+  # record_service_s3_key = "record-service-lambda.zip"
+  #
+  # text_use_s3 = true
+  # text_service_s3_bucket = "${var.project_name}-${var.environment}-pipeline-artifacts"
+  # text_service_s3_key = "text-service-lambda.zip"
+  #
+  # Recommended bootstrap order to avoid circular references with the
+  # CodePipeline module:
+  # 1) terraform apply -target=module.codepipeline
+  # 2) upload zips to the artifacts bucket
+  # 3) terraform apply -target=module.lambda (or set the *_use_s3 flags and apply)
+  # ------------------------------------------------------------------
 }
 
 # ==================================
@@ -383,8 +402,9 @@ module "api_gateway_ws" {
   environment  = var.environment
   tags         = local.common_tags
 
-  # VPC Link configuration
-  vpc_link_id      = module.vpc_link.vpc_link_id
+  # ALB configuration (WebSocket APIs do NOT support VPC Link V2)
+  # Using direct INTERNET connection to ALB DNS
+  alb_dns_name     = "http://${module.alb.alb_dns_name}"
   alb_listener_arn = module.alb.listener_arn
 
   # API configuration
@@ -657,6 +677,9 @@ module "codebuild" {
   # S3 and CloudFront configuration
   frontend_s3_bucket_name    = module.s3.bucket_id
   cloudfront_distribution_id = module.cloudfront.distribution_id
+
+  # Artifacts bucket used by pipelines and codebuild (pipeline module will create this bucket)
+  artifacts_bucket_name = "${var.project_name}-${var.environment}-pipeline-artifacts"
 
   # API Gateway endpoints for frontend
   api_gateway_endpoint = module.api_gateway_http.http_api_endpoint

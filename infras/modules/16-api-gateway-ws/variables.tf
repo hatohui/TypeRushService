@@ -19,16 +19,18 @@ variable "tags" {
 }
 
 # ========================================
-# VPC Link Configuration
+# ALB Configuration
 # ========================================
+# Note: WebSocket APIs do NOT support VPC Link V2
+# Using direct INTERNET connection to ALB DNS
 
-variable "vpc_link_id" {
-  description = "ID of the VPC Link for ALB integration"
+variable "alb_dns_name" {
+  description = "DNS name of the ALB for Game Service WebSocket integration (must be publicly accessible)"
   type        = string
 }
 
 variable "alb_listener_arn" {
-  description = "ARN of the ALB listener for Game Service integration"
+  description = "ARN of the ALB listener for Game Service integration (for reference)"
   type        = string
 }
 

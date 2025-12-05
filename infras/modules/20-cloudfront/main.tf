@@ -1,6 +1,13 @@
 # ==================================
 # CloudFront Distribution Module
 # ==================================
+# Note: CloudFront now offers flat-rate pricing plans (Free, Pro, Business, Premium)
+# alongside traditional pay-as-you-go pricing. The Free tier includes:
+# - 1M requests/month + 100GB data transfer
+# - CloudFront CDN, WAF, DDoS protection, Route53 DNS
+# - No overage charges (performance may be reduced if exceeded)
+# See: https://aws.amazon.com/cloudfront/pricing/
+# This module uses pay-as-you-go. To use flat-rate, configure in AWS Console.
 
 # Origin Access Control for S3 (replaces legacy OAI)
 resource "aws_cloudfront_origin_access_control" "s3" {

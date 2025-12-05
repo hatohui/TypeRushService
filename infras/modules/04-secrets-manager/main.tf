@@ -44,9 +44,9 @@ resource "random_password" "redis_auth_token" {
 
 # Create the secret metadata
 resource "aws_secretsmanager_secret" "rds_credentials" {
-  name                    = "${var.project_name}/${var.environment}/record-db/credentials"
+  name                    = "${var.project_name}/${var.environment}/record-db/credentials-${substr(md5("${timestamp()}"), 0, 8)}"
   description             = "RDS PostgreSQL credentials for Record Service"
-  recovery_window_in_days = var.secret_recovery_window_days
+  recovery_window_in_days = 0  # Allow immediate recreation during development
 
   tags = merge(
     var.tags,
@@ -78,9 +78,9 @@ resource "aws_secretsmanager_secret_version" "rds_credentials" {
 
 # Create the secret metadata
 resource "aws_secretsmanager_secret" "elasticache_auth_token" {
-  name                    = "${var.project_name}/${var.environment}/elasticache/auth-token"
+  name                    = "${var.project_name}/${var.environment}/elasticache/auth-token-${substr(md5("${timestamp()}"), 0, 8)}"
   description             = "ElastiCache Redis AUTH token for Game Service"
-  recovery_window_in_days = var.secret_recovery_window_days
+  recovery_window_in_days = 0  # Allow immediate recreation during development
 
   tags = merge(
     var.tags,

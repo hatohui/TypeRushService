@@ -65,9 +65,9 @@ variable "dynamodb_table_name" {
 # ========================================
 
 variable "record_service_package_path" {
-  description = "Path to the Record Service Lambda deployment package (ZIP file) relative to Terraform root"
+  description = "Absolute path to the Record Service Lambda deployment package (ZIP file)"
   type        = string
-  default     = "../build/record-service-lambda.zip"
+  default     = "/home/hatohui/repos/TypeRushService/build/record-service-lambda.zip"
 }
 
 # Optional: Use S3 object instead of local filename
@@ -99,9 +99,9 @@ variable "record_service_s3_object_version" {
 # the earlier declarations are kept to avoid variable name collisions.)
 
 variable "text_service_package_path" {
-  description = "Path to the Text Service Lambda deployment package (ZIP file) relative to Terraform root"
+  description = "Absolute path to the Text Service Lambda deployment package (ZIP file)"
   type        = string
-  default     = "../build/text-service-lambda.zip"
+  default     = "/home/hatohui/repos/TypeRushService/build/text-service-lambda.zip"
 }
 
 # Optional: Use S3 object instead of local filename

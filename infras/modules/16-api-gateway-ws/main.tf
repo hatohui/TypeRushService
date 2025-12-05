@@ -22,20 +22,22 @@ resource "aws_apigatewayv2_api" "websocket" {
 }
 
 # ========================================
-# VPC Link Integration for WebSocket
+# ALB Integration for WebSocket
 # ========================================
+# Note: WebSocket APIs do NOT support VPC Link V2
+# Using INTERNET connection type to connect to ALB
+# ALB must be internet-facing or use a public endpoint
 
 resource "aws_apigatewayv2_integration" "ws_alb" {
   api_id             = aws_apigatewayv2_api.websocket.id
   integration_type   = "HTTP_PROXY"
-  integration_uri    = var.alb_listener_arn
+  integration_uri    = var.alb_dns_name
   integration_method = "POST"
-  connection_type    = "VPC_LINK"
-  connection_id      = var.vpc_link_id
+  connection_type    = "INTERNET"
 
-  request_parameters = {
-    "overwrite:path" = "$request.path"
-  }
+  # Note: WebSocket APIs use different mapping syntax than HTTP APIs
+  # For HTTP_PROXY integrations to ALB, we don't need request_parameters
+  # The path and query strings are automatically forwarded
 }
 
 # ========================================

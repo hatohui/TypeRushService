@@ -61,9 +61,10 @@ resource "aws_apigatewayv2_integration" "alb" {
   connection_type    = "VPC_LINK"
   connection_id      = var.vpc_link_id
 
-  request_parameters = {
-    "overwrite:path" = "$request.path"
-  }
+  # Note: For HTTP_PROXY integrations with VPC Link:
+  # - Path, query string, and headers are automatically forwarded
+  # - Use 'append:' prefix for adding new parameters (e.g., 'append:header' key)
+  # - Avoid 'overwrite:' prefix as it causes invalid mapping expression error
 }
 
 # Lambda Integration - Record Service
@@ -94,7 +95,7 @@ resource "aws_apigatewayv2_route" "game_health" {
   target    = "integrations/${aws_apigatewayv2_integration.alb.id}"
 }
 
-resource "aws_apigatewayv2_route" "game_session_create" {
+resource "aws_apigatewayv2_route" "game_session_create" {   
   api_id    = aws_apigatewayv2_api.http.id
   route_key = "POST /api/game/session"
   target    = "integrations/${aws_apigatewayv2_integration.alb.id}"

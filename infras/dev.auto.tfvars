@@ -83,13 +83,14 @@ cognito_enable_mfa          = false # Enable for production
 # After first deploy, add CloudFront URL: cognito_callback_urls = ["http://localhost:3000/callback", "http://localhost:5173/callback", "https://<cloudfront-domain>/callback"]
 
 
-# CodePipeline Configuration (Optional - for CI/CD)
-codestar_connection_arn = "" # Add CodeStar connection ARN when ready
-repository_id           = "" # e.g., "your-username/TypeRushService"
+# CodePipeline Configuration (GitLab Integration)
+# IMPORTANT: After running terraform apply, follow setup instructions in docs/GITLAB_CODEPIPELINE_SETUP.md
+codestar_connection_arn = "" # Will be filled after creating GitLab connection (see setup guide)
+repository_id           = "" # e.g., "hatohui/TypeRushService" - your GitLab username/repo
 pipeline_branch_name    = "main"
 
-# Enable pipelines as needed (all disabled by default)
-create_game_service_pipeline   = false
-create_record_service_pipeline = false
-create_text_service_pipeline   = false
-create_frontend_pipeline       = false
+# Enable pipelines (set to true to create)
+create_game_service_pipeline   = true
+create_record_service_pipeline = true
+create_text_service_pipeline   = true
+create_frontend_pipeline       = true

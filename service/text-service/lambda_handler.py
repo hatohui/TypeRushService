@@ -1,12 +1,11 @@
 from contextlib import asynccontextmanager
 
+from controllers.text_controller import router as textRouter
 from fastapi import FastAPI
 from mangum import Mangum
+from models.TextService import TextService
 from pydantic import Field
 from pydantic_settings import BaseSettings
-
-from controllers.text_controller import router as textRouter
-from models.TextService import TextService
 
 
 # Settings for the FastAPI application
@@ -14,7 +13,7 @@ class Settings(BaseSettings):
     app_name: str = "Typing Practice Text Service API"
     debug: bool = True
     PORT: int = Field(default=8000, alias="PORT")
-    AWS_REGION: str = Field(default="ap-southeast-2", alias="AWS_REGION")
+    AWS_REGION: str = Field(default="ap-southeast-1", alias="AWS_REGION")
     DYNAMODB_TABLE_NAME: str = Field(default="wordsntexts", alias="DYNAMODB_TABLE_NAME")
     BEDROCK_AGENT_ID: str | None = Field(default=None, alias="BEDROCK_AGENT_ID")
     BEDROCK_AGENT_ALIAS: str | None = Field(default=None, alias="BEDROCK_AGENT_ALIAS")

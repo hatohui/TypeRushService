@@ -13,10 +13,10 @@ pip install -r requirements.txt
 ### Option A: Using Uvicorn directly
 ```bash
 # Development mode with auto-reload
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+uvicorn lambda_handler:app --reload --host 0.0.0.0 --port 8000
 
 # Production mode
-uvicorn main:app --host 0.0.0.0 --port 8000 --workers 4
+uvicorn lambda_handler:app --host 0.0.0.0 --port 8000 --workers 4
 ```
 
 ### Option B: Using Docker Compose
@@ -30,7 +30,7 @@ docker compose down
 
 ### Option C: Using Python directly
 ```bash
-python3 -m uvicorn main:app --reload
+python3 -m uvicorn lambda_handler:app --reload
 ```
 
 ## Method 2: Interactive API Documentation
@@ -50,7 +50,7 @@ Once the server is running, open your browser:
 
 ```bash
 # Start the server first (in one terminal)
-uvicorn main:app --reload
+uvicorn lambda_handler:app --reload
 
 # Run tests (in another terminal)
 python3 test_api.py
@@ -173,7 +173,7 @@ lsof -i :8000
 kill -9 <PID>
 
 # Or use a different port
-uvicorn main:app --port 8001
+uvicorn lambda_handler:app --port 8001
 ```
 
 ### DynamoDB/Bedrock issues

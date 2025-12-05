@@ -16,7 +16,7 @@ class TextService:
 
     def __init__(
         self,
-        aws_region: str = "ap-southeast-2",
+        aws_region: str = "ap-southeast-1",
         dynamodb_table_name: str = "wordsntexts",
         bedrock_agent_id: str | None = None,
         bedrock_agent_alias: str | None = None,

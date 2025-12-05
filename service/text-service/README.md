@@ -43,7 +43,7 @@ BEDROCK_AGENT_ALIAS=your-agent-alias    # optional, only needed for type 3
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-uvicorn main:app --reload
+uvicorn lambda_handler:app --reload
 ```
 
 Open http://localhost:8000/docs for Swagger UI.
@@ -69,7 +69,7 @@ python test_api.py       # interactive Python test suite
 ## 🧰 Useful Commands
 
 ```bash
-uvicorn main:app --reload                     # Start dev server
+uvicorn lambda_handler:app --reload                     # Start dev server
 python test_api.py                            # Full test suite
 ./quick_test.sh                               # Manual spot checks
 aws dynamodb scan --table-name <name>         # Inspect source data quickly

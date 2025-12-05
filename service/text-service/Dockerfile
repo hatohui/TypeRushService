@@ -8,4 +8,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 EXPOSE 8000
 
-CMD ["fastapi", "run", "./main.py"]
+CMD ["fastapi", "run", "./lambda_handler.py"]

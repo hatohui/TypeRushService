@@ -26,7 +26,7 @@ phases:
       - pip install -r requirements.txt -t build/package/
       
       - echo "Copying application code..."
-      - cp main.py build/package/
+      - cp lambda_handler.py build/package/
       - cp -r models build/package/
       - cp -r controllers build/package/
       

@@ -1,0 +1,44 @@
+version: 0.2
+
+# ========================================
+# Text Service Build Specification
+# ========================================
+# This buildspec builds the Lambda function and updates it
+# Used by CodePipeline for automated Lambda deployment
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.12
+    commands:
+      - echo "Installing dependencies..."
+      - cd services/text-service
+      - pip install -r requirements.txt -t ./package
+      - pip install -r requirements.txt # Also install for build environment
+
+  build:
+    commands:
+      - echo "Preparing Lambda package..."
+      - cp lambda_handler.py package/
+      - cp -r controllers package/ 2>/dev/null || true
+      - cd package
+      - zip -r ../function.zip .
+      - cd ..
+      - echo "Lambda package created: function.zip"
+
+  post_build:
+    commands:
+      - echo "Updating Lambda function..."
+      - aws lambda update-function-code --function-name $LAMBDA_FUNCTION_NAME --zip-file fileb://function.zip
+      - echo "Waiting for Lambda update to complete..."
+      - aws lambda wait function-updated --function-name $LAMBDA_FUNCTION_NAME
+      - echo "Deployment completed successfully"
+
+artifacts:
+  files:
+    - services/text-service/function.zip
+  discard-paths: yes
+
+cache:
+  paths:
+    - "/root/.cache/pip/**/*"

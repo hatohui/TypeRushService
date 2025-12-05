@@ -1,0 +1,44 @@
+version: 0.2
+
+# ========================================
+# Record Service Build Specification
+# ========================================
+# This buildspec builds the Lambda function and updates it
+# Used by CodePipeline for automated Lambda deployment
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 20
+    commands:
+      - echo "Installing dependencies..."
+      - cd services/record-service
+      - npm ci
+
+  build:
+    commands:
+      - echo "Building project..."
+      - npm run build
+      - echo "Generating Prisma client..."
+      - npx prisma generate
+
+  post_build:
+    commands:
+      - echo "Preparing Lambda package..."
+      - npm prune --production
+      - echo "Creating deployment package..."
+      - zip -r function.zip dist/ node_modules/ package.json
+      - echo "Updating Lambda function..."
+      - aws lambda update-function-code --function-name $LAMBDA_FUNCTION_NAME --zip-file fileb://function.zip
+      - echo "Waiting for Lambda update to complete..."
+      - aws lambda wait function-updated --function-name $LAMBDA_FUNCTION_NAME
+      - echo "Deployment completed successfully"
+
+artifacts:
+  files:
+    - services/record-service/function.zip
+  discard-paths: yes
+
+cache:
+  paths:
+    - "/root/.npm/**/*"

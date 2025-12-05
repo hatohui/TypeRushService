@@ -1,0 +1,20 @@
+### Node.js ###
+dist/
+node_modules/
+
+### Jest ###
+coverage/
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### VS Code ###
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+
+### Mac OS ###
+.DS_Store

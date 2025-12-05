@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Mode {
+  id            Int             @id @default(autoincrement())
+  name          String
+  description   String
+  matchHistories MatchHistory[] @relation("ModeToMatchHistories")
+
+  @@map("modes")
+}
+
+model PersonalRecord {
+  id        Int      @id @default(autoincrement())
+  accountId String   @map("account_id")
+  accuracy  Float
+  createdAt DateTime @map("created_at") @default(now())
+  raw       Float
+
+  @@map("personal_record")
+}
+
+model MatchHistory {
+  id           Int                @id @default(autoincrement())
+  modeId       Int                @map("mode_id")
+  createdAt    DateTime           @map("created_at") @default(now())
+  mode         Mode               @relation("ModeToMatchHistories", fields: [modeId], references: [id])
+  participants MatchParticipant[] @relation("MatchHistoryToParticipants")
+
+  @@map("match_histories")
+}
+
+model MatchParticipant {
+  historyId Int     @map("history_id")
+  accountId String  @map("account_id")
+  rank      Int
+  accuracy  Float
+  raw       Float
+
+  history MatchHistory @relation("MatchHistoryToParticipants", fields: [historyId], references: [id])
+
+  @@id([historyId, accountId])
+  @@map("match_participants")
+}
+
+model Achievement {
+  id          Int               @id @default(autoincrement())
+  name        String
+  description String
+  wpmCriteria Int               @map("wpm_criteria")
+  users       UserAchievement[] @relation("AchievementToUserAchievements")
+
+  @@map("achievements")
+}
+
+model UserAchievement {
+  accountId     String      @map("account_id")
+  achievementId Int         @map("achievement_id")
+  achievement   Achievement @relation("AchievementToUserAchievements", fields: [achievementId], references: [id])
+
+  @@id([accountId, achievementId])
+  @@map("user_achievements")
+}

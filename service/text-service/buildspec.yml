@@ -1,0 +1,59 @@
+version: 0.2
+
+env:
+  variables:
+    PYTHON_VERSION: "3.12"
+    FUNCTION_NAME: "text_service"
+  # These are set in CodeBuild project or Parameter Store - NOT hardcoded here
+  # AWS_REGION, DYNAMODB_TABLE_NAME, BEDROCK_AGENT_ID, BEDROCK_AGENT_ALIAS
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.12
+    commands:
+      - echo "Installing dependencies..."
+      - pip install --upgrade pip
+
+  pre_build:
+    commands:
+      - echo "Preparing build environment..."
+      - mkdir -p build/package
+
+  build:
+    commands:
+      - echo "Installing Lambda dependencies..."
+      - pip install -r requirements.txt -t build/package/
+      
+      - echo "Copying application code..."
+      - cp lambda_handler.py build/package/
+      - cp -r models build/package/
+      - cp -r controllers build/package/
+      
+      - echo "Creating deployment package..."
+      - cd build/package
+      - zip -r ../text-service-lambda.zip . -x "*.pyc" -x "__pycache__/*" -x "*.dist-info/*"
+      - cd ../..
+      
+      - echo "Package size:"
+      - du -h build/text-service-lambda.zip
+
+  post_build:
+    commands:
+      - echo "Deploying to Lambda..."
+      - aws lambda update-function-code
+          --function-name ${FUNCTION_NAME}
+          --zip-file fileb://build/text-service-lambda.zip
+          --publish
+      
+      - echo "Deployment complete!"
+      - aws lambda get-function --function-name ${FUNCTION_NAME} --query 'Configuration.[FunctionName,LastModified,CodeSize]'
+
+artifacts:
+  files:
+    - build/text-service-lambda.zip
+  discard-paths: yes
+
+cache:
+  paths:
+    - '/root/.cache/pip/**/*'

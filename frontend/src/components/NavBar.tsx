@@ -2,11 +2,17 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from 'antd'
 import { useGameStore } from '../stores/useGameStore.ts'
+import { useAuth } from 'react-oidc-context'
+import { UserDropdown } from './UserDropdown.tsx'
 
 const NavBar = (): React.ReactElement => {
 	const navigate = useNavigate()
 	const { shouldHideUI, isGameStarted } = useGameStore()
 	const shouldHideUILocal = shouldHideUI || isGameStarted
+	const auth = useAuth()
+	const goToCognito = () => {
+		auth.signinRedirect()
+	}
 
 	return (
 		<header
@@ -28,12 +34,30 @@ const NavBar = (): React.ReactElement => {
 						className='bg-background-primary px-3 py-1 rounded cursor-pointer'
 						onClick={() => navigate('/gameRoom')}
 					>
-						multiplayer
+						Multiplayer
 					</Button>
+
 					<button className='bg-background-primary px-3 py-1 rounded'>
-						settings
+						Settings
 					</button>
+
+					{auth.isAuthenticated && auth.user?.profile ? (
+						<div className='group relative bg-background-primary px-3 py-1 rounded cursor-pointer'>
+							{auth.user.profile.name}
+							<div className='absolute opacity-0 group-hover:opacity-100 duration-200'>
+								<UserDropdown></UserDropdown>
+							</div>
+						</div>
+					) : (
+						<button
+							className='bg-background-primary px-3 py-1 rounded cursor-pointer'
+							onClick={goToCognito}
+						>
+							Sign in
+						</button>
+					)}
 				</nav>
+
 				<div className='w-5 h-5 rounded-full bg-blue-500' />
 			</div>
 		</header>
